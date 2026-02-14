@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT426 Interactive Learning | KSU</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3352;--text:#e8eaf6;--text-dim:#8b90b8;--text-muted:#4a5080;}
+*{margin:0;padding:0;box-sizing:border-box;}button{color:inherit;font-family:inherit;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
+nav{background:rgba(26,29,39,.95);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+.nav-logo{font-size:16px;font-weight:700;color:var(--text);}.nav-logo span{color:#6c63ff;}
+.nav-badges{display:flex;gap:8px;}
+.nav-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--text-muted);}
+.hero{padding:72px 40px 56px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 100% 80% at 50% -10%,rgba(108,99,255,.18) 0%,transparent 70%);pointer-events:none;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:#9c94ff;padding:6px 16px;border-radius:30px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:24px;}
+.hero h1{font-size:clamp(30px,5vw,58px);font-weight:800;line-height:1.1;margin-bottom:16px;}
+.line1{display:block;color:var(--text);}
+.line2{display:block;background:linear-gradient(135deg,#6c63ff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--text-dim);max-width:500px;margin:0 auto;line-height:1.6;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0 40px;}
+.exercises-section{padding:56px 40px 60px;}
+.section-hdr{margin-bottom:36px;}
+.section-hdr h2{font-size:26px;font-weight:700;margin-bottom:6px;}
+.section-hdr p{color:var(--text-dim);font-size:14px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;max-width:1100px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:26px;position:relative;overflow:hidden;transition:all .3s;text-decoration:none;display:block;color:var(--text);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc,#6c63ff);border-radius:18px 18px 0 0;}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.35);border-color:var(--cc,#6c63ff);}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.emoji{font-size:36px;}
+.num{font-size:11px;font-weight:700;color:var(--text-muted);font-family:'JetBrains Mono',monospace;background:var(--surface2);border:1px solid var(--border);padding:3px 10px;border-radius:8px;}
+.card-title{font-size:19px;font-weight:700;margin-bottom:8px;}
+.card-desc{font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;}
+.tags{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-size:11px;padding:3px 9px;border-radius:6px;font-weight:600;border:1px solid var(--border);color:var(--text-muted);background:var(--surface2);}
+.concepts-section{padding:0 40px 64px;}
+.concepts-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1100px;margin-top:28px;}
+@media(max-width:900px){.concepts-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.concepts-grid{grid-template-columns:repeat(2,1fr);}.hero{padding:50px 20px 40px;}.exercises-section,.concepts-section{padding-left:20px;padding-right:20px;}nav{padding:12px 20px;}}
+.cc{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.ci{font-size:26px;margin-bottom:8px;}.cn{font-size:14px;font-weight:700;margin-bottom:4px;}.cd{font-size:12px;color:var(--text-muted);}
+footer{background:var(--surface);border-top:1px solid var(--border);padding:32px 40px;text-align:center;color:var(--text-muted);font-size:13px;}
+footer strong{color:var(--text-dim);}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">IT426 <span>Interactive</span></div>
+  <div class="nav-badges">
+    <span class="nav-badge">AI Systems · Chapter 3</span>
+    <span class="nav-badge">King Saud University</span>
+  </div>
+</nav>
+<div class="hero">
+  <div class="eyebrow">✦ Problem Solving Using Search</div>
+  <h1><span class="line1">Learn by Doing,</span><span class="line2">Not Just Reading</span></h1>
+  <p class="hero-sub">Interactive exercises that teach state representation, problem formulation, and search — hands-on.</p>
+</div>
+<div class="divider"></div>
+<section class="exercises-section">
+  <div class="section-hdr">
+    <h2>Exercises</h2>
+    <p>Each exercise covers one classic AI search problem — play, explore, then formulate</p>
+  </div>
+  <div class="grid">
+    <a href="8-puzzle-module.html" class="card" style="--cc:#6c63ff;">
+      <div class="card-top"><div class="emoji">🎮</div><div class="num">01</div></div>
+      <div class="card-title">8-Puzzle Problem</div>
+      <div class="card-desc">Slide tiles to reach the goal state. Learn how AI represents states and builds the state space tree.</div>
+      <div class="tags"><span class="tag">State Representation</span><span class="tag">State Tree</span><span class="tag">Goal Test</span></div>
+    </a>
+    <a href="vacuum-world-module.html" class="card" style="--cc:#00d4aa;">
+      <div class="card-top"><div class="emoji">🤖</div><div class="num">02</div></div>
+      <div class="card-title">Vacuum World</div>
+      <div class="card-desc">Control a cleaning robot across two dirty rooms. Explore all 8 states and the transition model live.</div>
+      <div class="tags"><span class="tag">Actions</span><span class="tag">Transition Model</span><span class="tag">8 States</span></div>
+    </a>
+    <a href="romania-map-module.html" class="card" style="--cc:#f59e0b;">
+      <div class="card-top"><div class="emoji">🗺️</div><div class="num">03</div></div>
+      <div class="card-title">Romania Road Trip</div>
+      <div class="card-desc">Drive from Arad to Bucharest. Build your own path and discover which route is truly optimal.</div>
+      <div class="tags"><span class="tag">Path Cost</span><span class="tag">Optimal Solution</span><span class="tag">State Space</span></div>
+    </a>
+    <a href="hanoi-module.html" class="card" style="--cc:#a78bfa;">
+      <div class="card-top"><div class="emoji">🗼</div><div class="num">04</div></div>
+      <div class="card-title">Tower of Hanoi</div>
+      <div class="card-desc">Move all disks to the target peg using the fewest moves. Understand recursive states and constraints.</div>
+      <div class="tags"><span class="tag">Recursive States</span><span class="tag">Constraints</span><span class="tag">Min Moves</span></div>
+    </a>
+    <a href="maze-module.html" class="card" style="--cc:#f472b6;">
+      <div class="card-top"><div class="emoji">🧭</div><div class="num">05</div></div>
+      <div class="card-title">Maze Navigator</div>
+      <div class="card-desc">Guide a robot through a grid maze step by step. Grid-based states and coordinate representation.</div>
+      <div class="tags"><span class="tag">Grid States</span><span class="tag">Coordinates</span><span class="tag">Path Finding</span></div>
+    </a>
+    <a href="tsp-module.html" class="card" style="--cc:#34d399;">
+      <div class="card-top"><div class="emoji">🌍</div><div class="num">06</div></div>
+      <div class="card-title">Traveling Salesman</div>
+      <div class="card-desc">Visit all cities exactly once and return home at minimum cost. See state explosion happen in real time.</div>
+      <div class="tags"><span class="tag">TSP</span><span class="tag">Permutations</span><span class="tag">Optimization</span></div>
+    </a>
+  </div>
+</section>
+<div class="divider"></div>
+<section class="concepts-section">
+  <div class="section-hdr"><h2>5 Problem Components</h2><p>Every search problem is formally defined by these five elements</p></div>
+  <div class="concepts-grid">
+    <div class="cc"><div class="ci">📍</div><div class="cn">Initial State</div><div class="cd">Where the agent starts</div></div>
+    <div class="cc"><div class="ci">⚡</div><div class="cn">Actions</div><div class="cd">Available moves per state</div></div>
+    <div class="cc"><div class="ci">🔄</div><div class="cn">Transition Model</div><div class="cd">Result of each action</div></div>
+    <div class="cc"><div class="ci">🎯</div><div class="cn">Goal Test</div><div class="cd">Is this the solution?</div></div>
+    <div class="cc"><div class="ci">💰</div><div class="cn">Path Cost</div><div class="cd">Cost of the solution</div></div>
+  </div>
+</section>
+<footer>
+  <p><strong>IT426: Artificial Intelligence Systems</strong> — Chapter 3: Problem Solving Using Search</p>
+  <p style="margin-top:6px;">Information Technology Department · King Saud University</p>
+</footer>
+</body>
+</html>

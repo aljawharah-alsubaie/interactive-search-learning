@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8-Puzzle | IT426 Interactive Learning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3352;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --success: #10b981;
+    --text: #e8eaf6;
+    --text-dim: #8b90b8;
+    --text-muted: #4a5080;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  button { color: inherit; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity .2s;
+  }
+  nav a:hover { opacity: .7; }
+  .nav-badge {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    text-align: center;
+    padding: 60px 32px 40px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,99,255,.15) 0%, transparent 70%);
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(108,99,255,.15);
+    border: 1px solid rgba(108,99,255,.4);
+    color: var(--accent);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    background: linear-gradient(135deg, #fff 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  /* ─── PROGRESS STEPS ─── */
+  .steps-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 32px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    flex: 1;
+  }
+  .step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    transition: all .4s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .step-circle.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 20px rgba(108,99,255,.5);
+  }
+  .step-circle.done {
+    border-color: var(--success);
+    background: var(--success);
+    color: white;
+  }
+  .step-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    transition: color .4s;
+  }
+  .step-label.active { color: var(--accent); }
+  .step-label.done { color: var(--success); }
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin-top: -22px;
+    margin-bottom: 22px;
+    transition: background .4s;
+    position: relative;
+    z-index: 1;
+  }
+  .step-line.done { background: var(--success); }
+
+  /* ─── SECTIONS ─── */
+  .section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: none;
+  }
+  .section.visible { display: block; animation: fadeUp .5s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .section-subtitle {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .card-sm {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  /* ─── PUZZLE BOARD ─── */
+  .game-layout {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  @media(max-width: 700px) {
+    .game-layout { grid-template-columns: 1fr; }
+  }
+
+  .puzzle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  #puzzle-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 288px;
+    height: 288px;
+    background: var(--surface2);
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .tile {
+    border: none;
+    border-radius: 12px;
+    font-size: 30px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, background .2s;
+    background: var(--surface);
+    color: var(--text);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .tile:hover:not(.empty):not(.locked) {
+    transform: scale(1.06);
+    box-shadow: 0 0 16px rgba(108,99,255,.4);
+    border-color: var(--accent);
+    background: rgba(108,99,255,.15);
+  }
+  .tile:active:not(.empty):not(.locked) { transform: scale(.95); }
+  .tile.empty {
+    background: transparent;
+    border: 2px dashed var(--border);
+    cursor: default;
+  }
+  .tile.correct {
+    background: rgba(16,185,129,.1);
+    border-color: var(--success);
+    color: var(--success);
+  }
+  .tile.locked {
+    cursor: default;
+    opacity: .7;
+  }
+  .tile.moveable {
+    border-color: rgba(108,99,255,.5);
+    box-shadow: 0 0 10px rgba(108,99,255,.2);
+  }
+  .tile.hint-tile {
+    animation: hintPulse .4s ease 3;
+  }
+  @keyframes hintPulse {
+    0%,100% { box-shadow: 0 0 0 rgba(108,99,255,0); }
+    50% { box-shadow: 0 0 24px rgba(108,99,255,.8); border-color: var(--accent); }
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+  }
+
+  /* Controls */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #5a52e0; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(108,99,255,.4); }
+  .btn-ghost { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--border); color: var(--text); }
+  .btn-success { background: var(--success); color: white; }
+  .btn-success:hover { background: #0ea572; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ─── STATE DISPLAY ─── */
+  .state-panel { display: flex; flex-direction: column; gap: 16px; }
+  .state-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent2);
+    white-space: pre;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+  .code-comment { color: var(--text-muted); }
+
+  .history-log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .history-entry {
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 3px;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .history-entry:nth-child(odd) { background: rgba(255,255,255,.02); }
+  .history-num {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    min-width: 20px;
+  }
+  .history-tile {
+    background: rgba(108,99,255,.2);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .history-dir { color: var(--accent2); font-weight: 600; font-size: 11px; }
+
+  /* ─── SUCCESS BANNER ─── */
+  .success-banner {
+    display: none;
+    background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(108,99,255,.1));
+    border: 1px solid var(--success);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    animation: fadeUp .4s ease;
+  }
+  .success-banner.show { display: block; }
+  .success-banner h3 { font-size: 20px; color: var(--success); margin-bottom: 8px; }
+  .success-banner p { color: var(--text-dim); font-size: 14px; margin-bottom: 16px; }
+
+  /* ─── QUESTION CARDS ─── */
+  .question-box {
+    background: linear-gradient(135deg, rgba(108,99,255,.08), rgba(0,212,170,.05));
+    border: 1px solid rgba(108,99,255,.3);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    width: 100%;
+    color: var(--text);
+  }
+  .option:hover { border-color: var(--accent); background: rgba(108,99,255,.07); }
+  .option.selected { border-color: var(--accent); background: rgba(108,99,255,.12); }
+  .option.correct-ans { border-color: var(--success); background: rgba(16,185,129,.1); color: var(--success); }
+  .option.wrong-ans { border-color: var(--danger); background: rgba(239,68,68,.08); color: var(--danger); }
+  .option-letter {
+    background: var(--surface2);
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    transition: all .2s;
+  }
+  .option.selected .option-letter { background: var(--accent); color: white; }
+  .option.correct-ans .option-letter { background: var(--success); color: white; }
+  .option.wrong-ans .option-letter { background: var(--danger); color: white; }
+  .option-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; font-weight: 400; }
+
+  /* Feedback */
+  .feedback {
+    display: none;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    animation: fadeUp .3s ease;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3); color: #6ee7b7; }
+  .feedback.wrong { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.3); color: #fca5a5; }
+  .feedback.warn { background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.3); color: #fcd34d; }
+  .feedback-title { font-weight: 700; font-size: 16px; margin-bottom: 8px; }
+
+  .explanation-box {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 20px;
+    animation: fadeUp .4s ease;
+  }
+  .explanation-box.show { display: block; }
+  .explanation-box h3 { color: var(--accent2); font-size: 16px; margin-bottom: 12px; }
+  .explanation-box ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .explanation-box li { display: flex; gap: 10px; font-size: 14px; color: var(--text-dim); }
+  .explanation-box li::before { content: "→"; color: var(--accent2); font-weight: 700; flex-shrink: 0; }
+
+  /* ─── TREE SECTION ─── */
+  .tree-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  #tree-svg-container {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    min-height: 420px;
+    position: relative;
+    cursor: grab;
+  }
+  #tree-svg-container:active { cursor: grabbing; }
+  #tree-svg-container svg { display: block; width: 100%; height: 100%; }
+  .zoom-hint {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: rgba(15,17,23,.8);
+    padding: 4px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  /* Node info panel */
+  #node-info-panel {
+    display: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 16px;
+    animation: fadeUp .3s ease;
+  }
+  #node-info-panel.show { display: block; }
+  .node-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media(max-width: 600px) { .node-info-grid { grid-template-columns: 1fr; } }
+
+  /* ─── FORMULATION ─── */
+  .form-components { display: flex; flex-direction: column; gap: 20px; }
+  .form-comp {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color .3s;
+  }
+  .form-comp.graded-correct { border-color: var(--success); }
+  .form-comp.graded-wrong { border-color: var(--danger); }
+  .comp-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+  }
+  .comp-num {
+    background: var(--accent);
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .comp-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 14px; }
+  .radio-group, .check-group { display: flex; flex-direction: column; gap: 8px; }
+  .radio-opt, .check-opt {
+    color: var(--text);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .2s;
+    font-size: 14px;
+    background: var(--surface2);
+  }
+  .radio-opt:hover, .check-opt:hover { border-color: var(--accent); background: rgba(108,99,255,.08); }
+  .radio-opt input, .check-opt input { margin-top: 2px; accent-color: var(--accent); }
+  .textarea-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color .2s;
+  }
+  .textarea-input:focus { outline: none; border-color: var(--accent); }
+
+  .grade-feedback {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .grade-feedback.show { display: block; }
+  .grade-feedback.ok { background: rgba(16,185,129,.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,.3); }
+  .grade-feedback.bad { background: rgba(239,68,68,.08); color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+  /* ─── SCORE CARD ─── */
+  .score-card {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, rgba(108,99,255,.12), rgba(0,212,170,.08));
+    border: 1px solid rgba(108,99,255,.3);
+    border-radius: 20px;
+  }
+  .score-big { font-size: 80px; font-weight: 700; font-family: 'JetBrains Mono', monospace; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .score-label { color: var(--text-dim); font-size: 16px; margin-bottom: 32px; }
+  .score-breakdown { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 600px; margin: 0 auto 32px; }
+  @media(max-width: 600px) { .score-breakdown { grid-template-columns: repeat(2,1fr); } }
+  .score-item { background: var(--surface2); border-radius: 10px; padding: 12px 8px; font-size: 12px; color: var(--text-dim); border: 1px solid var(--border); }
+  .score-item.ok { border-color: var(--success); color: var(--success); }
+  .score-item.bad { border-color: var(--danger); color: var(--danger); }
+  .score-icon { font-size: 22px; margin-bottom: 4px; }
+
+  /* ─── COMPLETION ─── */
+  .completion-card {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, rgba(16,185,129,.1), rgba(108,99,255,.1));
+    border: 1px solid var(--success);
+    border-radius: 20px;
+  }
+  .completion-emoji { font-size: 72px; margin-bottom: 24px; }
+  .completion-card h2 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
+  .completion-card p { color: var(--text-dim); margin-bottom: 32px; }
+  .completion-badges { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+  .badge { background: var(--surface2); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; font-size: 13px; color: var(--accent2); font-weight: 600; }
+
+  /* ─── UTILITY ─── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .mb-2 { margin-bottom: 8px; }
+  .text-dim { color: var(--text-dim); font-size: 14px; }
+  .text-muted { color: var(--text-muted); font-size: 12px; }
+
+  /* ─── D3 TREE ─── */
+  .d3-link { fill: none; stroke: #2e3352; stroke-width: 2; }
+  .d3-node circle { cursor: pointer; stroke-width: 2; transition: all .2s; }
+  .d3-node:hover circle { filter: brightness(1.4); }
+  .d3-node text { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: #8b90b8; pointer-events: none; }
+  .d3-node.selected circle { stroke: white !important; stroke-width: 3; filter: drop-shadow(0 0 8px rgba(108,99,255,.8)); }
+  .d3-edge-label { font-family: 'Space Grotesk', sans-serif; font-size: 10px; fill: #4a5080; pointer-events: none; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html">← Back to Exercises</a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <span class="nav-badge">IT426 · AI Systems</span>
+    <span class="nav-badge">King Saud University</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">Module 1 · Problem Formulation</div>
+  <h1>8-Puzzle Problem</h1>
+  <p>Learn state representation and search problem formulation through an interactive experience</p>
+</div>
+
+<!-- PROGRESS STEPS -->
+<div class="steps-bar">
+  <div class="step">
+    <div class="step-circle active" id="sc1">1</div>
+    <div class="step-label active" id="sl1">Play</div>
+  </div>
+  <div class="step-line" id="line1"></div>
+  <div class="step">
+    <div class="step-circle" id="sc2">2</div>
+    <div class="step-label" id="sl2">Learn States</div>
+  </div>
+  <div class="step-line" id="line2"></div>
+  <div class="step">
+    <div class="step-circle" id="sc3">3</div>
+    <div class="step-label" id="sl3">State Tree</div>
+  </div>
+  <div class="step-line" id="line3"></div>
+  <div class="step">
+    <div class="step-circle" id="sc4">4</div>
+    <div class="step-label" id="sl4">Formulate</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 · PLAY
+══════════════════════════════════════════ -->
+<section class="section visible" id="sec1">
+  <div class="section-title">Step 1: Play the 8-Puzzle 🎮</div>
+  <div class="section-subtitle">Click on any tile next to the empty space to move it. Two tiles start in the correct position — solve the rest!</div>
+
+  <div class="card">
+    <div class="game-layout">
+
+      <!-- Left: Board -->
+      <div class="puzzle-wrap">
+        <div id="puzzle-board"></div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <div class="stat-value" id="move-counter">0</div>
+            <div class="stat-label">Moves</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="timer-display">0:00</div>
+            <div class="stat-label">Time</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="btn btn-ghost" onclick="puzzle.reset()">🔄 Reset</button>
+          <button class="btn btn-ghost" onclick="puzzle.hint()">💡 Hint</button>
+        </div>
+
+        <!-- Success banner -->
+        <div class="success-banner" id="success-banner">
+          <h3>🎉 Puzzle Solved!</h3>
+          <p id="success-msg">You solved it! Now let's understand how AI represents this.</p>
+          <button class="btn btn-success" onclick="goToSection(2)">Continue to Learn States →</button>
+        </div>
+      </div>
+
+      <!-- Right: State display -->
+      <div class="state-panel">
+
+        <div class="card-sm">
+          <div class="state-label">Current State — Array</div>
+          <div class="code-block"><span class="code-comment">// 0 = empty space</span>
+<span id="state-arr">state = [1, 2, 3, 4, 5, 6, 7, 8, 0]</span></div>
+        </div>
+
+        <div class="card-sm">
+          <div class="state-label">Current State — Matrix</div>
+          <div class="code-block"><span id="state-mat">board = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 0]
+]</span></div>
+        </div>
+
+        <div class="card-sm">
+          <div class="state-label">Move History (last 5)</div>
+          <div class="history-log" id="history-log">
+            <div style="color:var(--text-muted);font-size:12px;padding:4px 8px;">No moves yet…</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Skip option -->
+  <div style="margin-top:16px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goToSection(2)" style="font-size:12px;opacity:.6;">
+      Skip puzzle → go straight to learning
+    </button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 · LEARN STATES
+══════════════════════════════════════════ -->
+<section class="section" id="sec2">
+  <div class="section-title">Step 2: Understanding State Representation 🧠</div>
+  <div class="section-subtitle">Now that you've played, let's understand how AI represents the puzzle.</div>
+
+  <!-- Q1 -->
+  <div class="question-box">
+    <div class="question-text">❓ How does AI represent a single configuration of the 8-puzzle?</div>
+    <div class="options" id="q1-options">
+      <button class="option" onclick="selectOpt('q1',this,'wrong')">
+        <span class="option-letter">A</span>
+        <div><div>A photo of the board 📸</div><div class="option-sub">Store an image of the current tile arrangement</div></div>
+      </button>
+      <button class="option" onclick="selectOpt('q1',this,'correct')">
+        <span class="option-letter">B</span>
+        <div><div>A 3×3 matrix of tile positions ✅</div><div class="option-sub">e.g. [[1,2,3],[4,0,5],[6,7,8]]</div></div>
+      </button>
+      <button class="option" onclick="selectOpt('q1',this,'wrong')">
+        <span class="option-letter">C</span>
+        <div><div>The total number of moves made</div><div class="option-sub">Count how many tiles have been moved</div></div>
+      </button>
+      <button class="option" onclick="selectOpt('q1',this,'wrong')">
+        <span class="option-letter">D</span>
+        <div><div>A video recording 🎥</div><div class="option-sub">Record all tile movements from start</div></div>
+      </button>
+    </div>
+    <div class="feedback" id="q1-feedback"></div>
+  </div>
+
+  <!-- Explanation (shown after correct) -->
+  <div class="explanation-box" id="q1-explanation">
+    <h3>✅ Why a matrix is the right choice:</h3>
+    <ul>
+      <li>A state must capture <strong>all information</strong> needed to determine possible actions</li>
+      <li>A 3×3 matrix is <strong>complete</strong> — it tells us exactly where every tile is</li>
+      <li>Photos and videos are too large and can't be efficiently manipulated by algorithms</li>
+      <li>Move count alone doesn't describe the current tile configuration</li>
+      <li>Each unique matrix = a unique node in the search tree</li>
+    </ul>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="goToSection(3)">Continue to State Tree →</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 · STATE TREE
+══════════════════════════════════════════ -->
+<section class="section" id="sec3">
+  <div class="section-title">Step 3: Explore the State Space Tree 🌳</div>
+  <div class="section-subtitle">Every state leads to multiple next states. Click any node to see its details!</div>
+
+  <div class="card">
+    <div class="tree-toolbar">
+      <div>
+        <span style="font-size:14px;font-weight:600;">State Space Tree</span>
+        <span style="color:var(--text-muted);font-size:12px;margin-left:10px;" id="tree-depth-label">Depth: 1</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" id="btn-expand" onclick="treeViz.expand()">Expand ↓</button>
+        <button class="btn btn-ghost" onclick="treeViz.reset()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div id="tree-svg-container"></div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#6c63ff"></div>Initial State</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#22263a;border:2px solid #6c63ff"></div>Intermediate</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Goal State</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Selected</div>
+    </div>
+  </div>
+
+  <!-- Node Info -->
+  <div id="node-info-panel">
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Selected Node Info</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;" id="node-depth-label"></div>
+    <div class="node-info-grid">
+      <div>
+        <div class="state-label">State Representation</div>
+        <div class="code-block" id="node-state-repr" style="font-size:11px;"></div>
+      </div>
+      <div>
+        <div class="state-label">Possible Actions</div>
+        <div class="code-block" id="node-actions" style="font-size:11px;min-height:80px;"></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="state-label">Path from Initial State</div>
+      <div class="code-block" id="node-path" style="font-size:11px;"></div>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;">
+    <button class="btn btn-primary btn-full" onclick="goToSection(4)">Continue to Problem Formulation →</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 · FORMULATE
+══════════════════════════════════════════ -->
+<section class="section" id="sec4">
+  <div class="section-title">Step 4: Formulate the Search Problem 📋</div>
+  <div class="section-subtitle">Define all five components of the 8-puzzle problem. Take your time — think about each one.</div>
+
+  <div class="form-components">
+
+    <!-- 1: Initial State -->
+    <div class="form-comp" id="fc1">
+      <div class="comp-title"><div class="comp-num">1</div> Initial State</div>
+      <div class="comp-desc">What is the starting configuration? Any arrangement counts as a valid initial state.</div>
+      <div class="options" id="fc1-opts" style="gap:8px;">
+        <button class="option" onclick="fcSelect('fc1',this,'correct')">
+          <span class="option-letter">A</span>
+          <div>Any valid arrangement of tiles 1–8 and one blank space</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc1',this,'wrong')">
+          <span class="option-letter">B</span>
+          <div>Only the solved configuration [[1,2,3],[4,5,6],[7,8,0]]</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc1',this,'wrong')">
+          <span class="option-letter">C</span>
+          <div>An empty board with no tiles</div>
+        </button>
+      </div>
+      <div class="grade-feedback" id="fc1-fb"></div>
+    </div>
+
+    <!-- 2: Actions -->
+    <div class="form-comp" id="fc2">
+      <div class="comp-title"><div class="comp-num">2</div> Actions</div>
+      <div class="comp-desc">What moves are allowed? Select the correct description.</div>
+      <div class="options" id="fc2-opts">
+        <button class="option" onclick="fcSelect('fc2',this,'wrong')">
+          <span class="option-letter">A</span>
+          <div>Swap any two tiles anywhere on the board</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc2',this,'correct')">
+          <span class="option-letter">B</span>
+          <div>Move the blank space Up, Down, Left, or Right (sliding adjacent tile)</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc2',this,'wrong')">
+          <span class="option-letter">C</span>
+          <div>Remove a tile from the board to reveal the blank</div>
+        </button>
+      </div>
+      <div class="grade-feedback" id="fc2-fb"></div>
+    </div>
+
+    <!-- 3: Transition Model -->
+    <div class="form-comp" id="fc3">
+      <div class="comp-title"><div class="comp-num">3</div> Transition Model</div>
+      <div class="comp-desc">What happens when an action is applied to a state?</div>
+      <div class="options" id="fc3-opts">
+        <button class="option" onclick="fcSelect('fc3',this,'correct')">
+          <span class="option-letter">A</span>
+          <div>The blank and an adjacent tile swap positions, producing a new state</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc3',this,'wrong')">
+          <span class="option-letter">B</span>
+          <div>The tile disappears and reappears in a random position</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc3',this,'wrong')">
+          <span class="option-letter">C</span>
+          <div>The entire board rotates 90 degrees clockwise</div>
+        </button>
+      </div>
+      <div class="grade-feedback" id="fc3-fb"></div>
+    </div>
+
+    <!-- 4: Goal Test -->
+    <div class="form-comp" id="fc4">
+      <div class="comp-title"><div class="comp-num">4</div> Goal Test</div>
+      <div class="comp-desc">When is the puzzle considered solved?</div>
+      <div class="options" id="fc4-opts">
+        <button class="option" onclick="fcSelect('fc4',this,'wrong')">
+          <span class="option-letter">A</span>
+          <div>When the blank space reaches position [0,0] (top-left)</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc4',this,'wrong')">
+          <span class="option-letter">B</span>
+          <div>When any tile reaches its correct position</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc4',this,'correct')">
+          <span class="option-letter">C</span>
+          <div>When the state equals [[1,2,3],[4,5,6],[7,8,0]] — all tiles in order, blank bottom-right</div>
+        </button>
+      </div>
+      <div class="grade-feedback" id="fc4-fb"></div>
+    </div>
+
+    <!-- 5: Path Cost -->
+    <div class="form-comp" id="fc5">
+      <div class="comp-title"><div class="comp-num">5</div> Path Cost</div>
+      <div class="comp-desc">How do we measure the cost of a solution path?</div>
+      <div class="options" id="fc5-opts">
+        <button class="option" onclick="fcSelect('fc5',this,'correct')">
+          <span class="option-letter">A</span>
+          <div>Each move costs 1 — total cost = total number of moves (optimal = fewest moves)</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc5',this,'wrong')">
+          <span class="option-letter">B</span>
+          <div>Time in seconds taken by the player to solve it</div>
+        </button>
+        <button class="option" onclick="fcSelect('fc5',this,'wrong')">
+          <span class="option-letter">C</span>
+          <div>How far the blank space traveled in total distance</div>
+        </button>
+      </div>
+      <div class="grade-feedback" id="fc5-fb"></div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:28px;">
+    <button class="btn btn-primary btn-full" id="btn-grade" onclick="gradeFormulation()" style="font-size:16px;padding:14px;">
+      ✅ Submit Answers
+    </button>
+  </div>
+
+  <!-- Score Card -->
+  <div id="score-section" style="display:none;margin-top:32px;animation:fadeUp .5s ease;">
+    <div class="score-card">
+      <div class="score-big" id="score-pct">—</div>
+      <div class="score-label" id="score-msg">—</div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+      <button class="btn btn-success" id="btn-complete" onclick="goToSection(5)" style="display:none;">
+        Complete Module 🎉
+      </button>
+      <button class="btn btn-ghost" onclick="retryFormulation()" id="btn-retry" style="display:none;">
+        Try Again ↺
+      </button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 · COMPLETION
+══════════════════════════════════════════ -->
+<section class="section" id="sec5">
+  <div class="completion-card">
+    <div class="completion-emoji">🎓</div>
+    <h2>Module Complete!</h2>
+    <p>You've mastered problem formulation with the 8-puzzle</p>
+    <div class="completion-badges">
+      <div class="badge">✓ Played & Explored</div>
+      <div class="badge">✓ State Representation</div>
+      <div class="badge">✓ State Space Tree</div>
+      <div class="badge">✓ Problem Formulation</div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="location.reload()">↺ Start Over</button>
+      <a href="index.html" class="btn btn-primary" style="text-decoration:none;">← Back to Exercises</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════
+     JAVASCRIPT
+════════════════════════════ -->
+<script>
+// ─── PUZZLE ENGINE ───────────────────────────────────────
+const puzzle = (() => {
+  const GOAL = [1,2,3,4,5,6,7,8,0];
+
+  let state = [];
+  let moves = 0;
+  let history = [];
+  let timerID = null;
+  let seconds = 0;
+  let solved = false;
+
+  // We keep these two positions "pre-solved"
+  // so the user only needs to move 2 tiles
+  const LOCKED = [0, 1]; // indices of tiles that start correct (positions 0 and 1 = tiles 1 and 2)
+
+  function init() {
+    // Build a state where tiles at indices 0,1 are already correct
+    // and the rest are shuffled
+    state = makePartialShuffle();
+    moves = 0;
+    history = [];
+    seconds = 0;
+    solved = false;
+    clearInterval(timerID);
+    timerID = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60);
+      const s = seconds % 60;
+      document.getElementById('timer-display').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+    render();
+    document.getElementById('success-banner').classList.remove('show');
+  }
+
+  function makePartialShuffle() {
+    // Start from goal state
+    let s = [...GOAL];
+
+    // Do random moves, but ensure tiles at index 0 and 1 stay correct
+    for (let i = 0; i < 60; i++) {
+      const ei = s.indexOf(0);
+      const poss = getMoves(ei).filter(mi => {
+        // Don't disturb tiles at locked positions
+        return !LOCKED.includes(mi) && !LOCKED.includes(ei);
+      });
+      if (poss.length === 0) continue;
+      const mi = poss[Math.floor(Math.random() * poss.length)];
+      [s[ei], s[mi]] = [s[mi], s[ei]];
+    }
+    // After shuffle, force tiles 1 and 2 to positions 0 and 1
+    // Place tile 1 at index 0
+    const idx1 = s.indexOf(1);
+    if (idx1 !== 0) {
+      [s[0], s[idx1]] = [s[idx1], s[0]];
+    }
+    // Place tile 2 at index 1 (careful not to displace tile 1)
+    const idx2 = s.indexOf(2);
+    if (idx2 !== 1) {
+      [s[1], s[idx2]] = [s[idx2], s[1]];
+    }
+    // Make sure it's not accidentally solved
+    if (s.every((v,i) => v === GOAL[i])) {
+      // Swap two non-locked tiles to unshuffle
+      [s[3], s[4]] = [s[4], s[3]];
+    }
+    return s;
+  }
+
+  function getMoves(ei) {
+    const r = Math.floor(ei/3), c = ei%3, res = [];
+    if (r > 0) res.push(ei-3);
+    if (r < 2) res.push(ei+3);
+    if (c > 0) res.push(ei-1);
+    if (c < 2) res.push(ei+1);
+    return res;
+  }
+
+  function getDir(from, to) {
+    const d = to - from;
+    return d===-3?'Up':d===3?'Down':d===-1?'Left':'Right';
+  }
+
+  function click(idx) {
+    if (solved) return;
+    const ei = state.indexOf(0);
+    if (!getMoves(ei).includes(idx)) return;
+    const tile = state[idx];
+    const dir = getDir(idx, ei);
+    [state[ei], state[idx]] = [state[idx], state[ei]];
+    moves++;
+    history.push({ tile, dir, state: [...state], num: moves });
+    render();
+    if (state.every((v,i) => v === GOAL[i])) {
+      solved = true;
+      clearInterval(timerID);
+      setTimeout(() => {
+        document.getElementById('success-banner').classList.add('show');
+        document.getElementById('success-msg').textContent =
+          `Solved in ${moves} moves and ${seconds}s! Let's understand the AI representation.`;
+      }, 300);
+    }
+  }
+
+  function render() {
+    const board = document.getElementById('puzzle-board');
+    board.innerHTML = '';
+    const ei = state.indexOf(0);
+    const moveable = getMoves(ei);
+
+    state.forEach((val, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'tile';
+      btn.dataset.idx = idx;
+
+      if (val === 0) {
+        btn.classList.add('empty');
+      } else {
+        btn.textContent = val;
+        if (LOCKED.includes(idx) && val === GOAL[idx]) {
+          btn.classList.add('correct', 'locked');
+          btn.title = 'Already in correct position!';
+        } else if (val === GOAL[idx]) {
+          btn.classList.add('correct');
+        }
+        if (moveable.includes(idx)) {
+          btn.classList.add('moveable');
+        }
+        btn.addEventListener('click', () => click(idx));
+      }
+      board.appendChild(btn);
+    });
+
+    document.getElementById('move-counter').textContent = moves;
+
+    // Update state display
+    document.getElementById('state-arr').textContent =
+      `state = [${state.join(', ')}]`;
+
+    const rows = [[state[0],state[1],state[2]], [state[3],state[4],state[5]], [state[6],state[7],state[8]]];
+    document.getElementById('state-mat').textContent =
+      `board = [\n  [${rows[0].join(', ')}],\n  [${rows[1].join(', ')}],\n  [${rows[2].join(', ')}]\n]`;
+
+    // History
+    const log = document.getElementById('history-log');
+    if (history.length === 0) {
+      log.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:4px 8px;">No moves yet…</div>';
+    } else {
+      const last = history.slice(-5).reverse();
+      log.innerHTML = last.map(h =>
+        `<div class="history-entry">
+          <span class="history-num">${h.num}</span>
+          Tile <span class="history-tile">${h.tile}</span>
+          <span class="history-dir">↑ ${h.dir}</span>
+        </div>`
+      ).join('');
+    }
+  }
+
+  function reset() { clearInterval(timerID); init(); }
+
+  function hint() {
+    const ei = state.indexOf(0);
+    const moveable = getMoves(ei);
+    // Find a move that puts a tile closer to goal
+    let best = moveable[0];
+    let bestScore = Infinity;
+    moveable.forEach(mi => {
+      const tile = state[mi];
+      const goalIdx = GOAL.indexOf(tile);
+      const dist = Math.abs(Math.floor(goalIdx/3) - Math.floor(mi/3)) + Math.abs(goalIdx%3 - mi%3);
+      if (dist < bestScore) { bestScore = dist; best = mi; }
+    });
+    const el = document.querySelector(`[data-idx="${best}"]`);
+    if (el) {
+      el.classList.add('hint-tile');
+      setTimeout(() => el.classList.remove('hint-tile'), 1200);
+    }
+  }
+
+  function getState() { return [...state]; }
+
+  return { init, reset, hint, click, getState };
+})();
+
+// ─── SECTION NAVIGATION ──────────────────────────────────
+function goToSection(n) {
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById(`sec${i}`)?.classList.remove('visible');
+  }
+  document.getElementById(`sec${n}`)?.classList.add('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateSteps(n);
+  if (n === 3) {
+    // Small delay to ensure container is visible before measuring width
+    setTimeout(() => treeViz.build(), 100);
+  }
+}
+
+function updateSteps(active) {
+  for (let i = 1; i <= 4; i++) {
+    const circ = document.getElementById(`sc${i}`);
+    const lbl  = document.getElementById(`sl${i}`);
+    const line = document.getElementById(`line${i}`);
+    circ.className = 'step-circle';
+    lbl.className  = 'step-label';
+    if (line) line.className = 'step-line';
+
+    if (i < active) {
+      circ.classList.add('done'); circ.textContent = '✓';
+      lbl.classList.add('done');
+      if (line) line.classList.add('done');
+    } else if (i === active) {
+      circ.classList.add('active'); circ.textContent = i;
+      lbl.classList.add('active');
+    } else {
+      circ.textContent = i;
+    }
+  }
+}
+
+// ─── Q&A ENGINE ──────────────────────────────────────────
+function selectOpt(qid, btn, result) {
+  const container = document.getElementById(`${qid}-options`);
+  container.querySelectorAll('.option').forEach(o => {
+    o.classList.remove('selected','correct-ans','wrong-ans');
+    o.disabled = false;
+  });
+
+  const fb = document.getElementById(`${qid}-feedback`);
+
+  if (result === 'correct') {
+    btn.classList.add('correct-ans');
+    fb.className = 'feedback show correct';
+    fb.innerHTML = '<div class="feedback-title">✅ Correct!</div>Great — a matrix is the standard way AI represents a discrete state.';
+    document.getElementById(`${qid}-explanation`)?.classList.add('show');
+    // disable all options after correct
+    container.querySelectorAll('.option').forEach(o => o.disabled = true);
+  } else {
+    btn.classList.add('wrong-ans');
+    fb.className = 'feedback show wrong';
+    fb.innerHTML = '<div class="feedback-title">❌ Not quite.</div>Think: what information does AI need to fully know the puzzle\'s configuration?';
+  }
+}
+
+// ─── FORMULATION GRADER ──────────────────────────────────
+const fcAnswers = { fc1: null, fc2: null, fc3: null, fc4: null, fc5: null };
+const fcCorrect = { fc1: 'correct', fc2: 'correct', fc3: 'correct', fc4: 'correct', fc5: 'correct' };
+
+const fcFeedback = {
+  fc1: { correct: "✅ Any valid arrangement is a valid initial state — the algorithm doesn't care where you start.",
+         wrong:   "❌ The initial state can be any valid board configuration, not just the solved one." },
+  fc2: { correct: "✅ We move the blank in 4 directions, which slides the adjacent tile.",
+         wrong:   "❌ Only tiles directly adjacent to the blank can move, by sliding into the blank space." },
+  fc3: { correct: "✅ The blank swaps with an adjacent tile, giving us a new board configuration (state).",
+         wrong:   "❌ The transition swaps the blank position with an adjacent tile's position." },
+  fc4: { correct: "✅ The goal test checks if the state exactly matches [[1,2,3],[4,5,6],[7,8,0]].",
+         wrong:   "❌ The puzzle is solved only when ALL tiles are in order with blank at bottom-right." },
+  fc5: { correct: "✅ Each move costs 1 → optimal solution = minimum number of moves.",
+         wrong:   "❌ Standard path cost = number of moves. Each move has cost 1." }
+};
+
+function fcSelect(fcid, btn, result) {
+  const opts = document.getElementById(`${fcid}-opts`);
+  opts.querySelectorAll('.option').forEach(o => o.classList.remove('selected','correct-ans','wrong-ans'));
+  btn.classList.add('selected');
+  fcAnswers[fcid] = result;
+}
+
+function gradeFormulation() {
+  let correct = 0;
+  const components = ['fc1','fc2','fc3','fc4','fc5'];
+  const names = ['Initial State','Actions','Transition Model','Goal Test','Path Cost'];
+
+  const breakdown = document.getElementById('score-breakdown');
+  breakdown.innerHTML = '';
+
+  components.forEach((fc, i) => {
+    const ans = fcAnswers[fc];
+    const comp = document.getElementById(fc);
+    const fb   = document.getElementById(`${fc}-fb`);
+
+    if (ans === 'correct') {
+      correct++;
+      comp.classList.add('graded-correct');
+      comp.classList.remove('graded-wrong');
+      fb.className = 'grade-feedback show ok';
+      fb.textContent = fcFeedback[fc].correct;
+      // mark selected button green
+      const opts = document.getElementById(`${fc}-opts`);
+      opts.querySelectorAll('.option.selected').forEach(o => {
+        o.classList.remove('selected'); o.classList.add('correct-ans');
+      });
+    } else {
+      comp.classList.add('graded-wrong');
+      comp.classList.remove('graded-correct');
+      fb.className = 'grade-feedback show bad';
+      fb.textContent = ans === null
+        ? '⚠️ No answer selected — please choose an option.'
+        : fcFeedback[fc].wrong;
+      const opts = document.getElementById(`${fc}-opts`);
+      opts.querySelectorAll('.option.selected').forEach(o => {
+        o.classList.remove('selected'); o.classList.add('wrong-ans');
+      });
+    }
+
+    const ok = ans === 'correct';
+    breakdown.innerHTML += `
+      <div class="score-item ${ok ? 'ok' : 'bad'}">
+        <div class="score-icon">${ok ? '✅' : '❌'}</div>
+        <div>${names[i]}</div>
+      </div>`;
+  });
+
+  const pct = Math.round((correct / 5) * 100);
+  document.getElementById('score-pct').textContent = `${pct}%`;
+
+  const msgs = {
+    100: '🏆 Perfect! You fully understand problem formulation!',
+    80:  '🎉 Excellent! Just one small thing to review.',
+    60:  '💪 Good effort! Review the red components and try again.',
+    0:   '🔄 Keep trying — re-read the explanations above.'
+  };
+  const key = pct === 100 ? 100 : pct >= 80 ? 80 : pct >= 60 ? 60 : 0;
+  document.getElementById('score-msg').textContent = msgs[key];
+
+  document.getElementById('score-section').style.display = 'block';
+  document.getElementById('score-section').scrollIntoView({ behavior: 'smooth' });
+
+  if (pct >= 80) {
+    document.getElementById('btn-complete').style.display = 'inline-flex';
+    document.getElementById('btn-retry').style.display = 'none';
+  } else {
+    document.getElementById('btn-retry').style.display = 'inline-flex';
+    document.getElementById('btn-complete').style.display = 'none';
+  }
+}
+
+function retryFormulation() {
+  Object.keys(fcAnswers).forEach(k => fcAnswers[k] = null);
+  ['fc1','fc2','fc3','fc4','fc5'].forEach(fc => {
+    document.getElementById(fc).classList.remove('graded-correct','graded-wrong');
+    const fb = document.getElementById(`${fc}-fb`);
+    fb.className = 'grade-feedback';
+    const opts = document.getElementById(`${fc}-opts`);
+    opts.querySelectorAll('.option').forEach(o =>
+      o.classList.remove('selected','correct-ans','wrong-ans'));
+  });
+  document.getElementById('score-section').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── TREE VISUALIZER ─────────────────────────────────────
+const treeViz = (() => {
+  const GOAL = [1,2,3,4,5,6,7,8,0];
+  let depth = 1;
+  const MAX_DEPTH = 3;
+  let rootState = null;
+  let selectedNode = null;
+
+  function getMoves(s) {
+    const ei = s.indexOf(0);
+    const r = Math.floor(ei/3), c = ei%3, res = [];
+    if (r > 0) res.push(ei-3);
+    if (r < 2) res.push(ei+3);
+    if (c > 0) res.push(ei-1);
+    if (c < 2) res.push(ei+1);
+    return res;
+  }
+
+  function getDir(from, to) {
+    const d = to - from;
+    return d===-3?'↑ Up':d===3?'↓ Down':d===-1?'← Left':'→ Right';
+  }
+
+  function buildNode(state, d, maxD, parent=null, action='') {
+    const node = { state:[...state], depth:d, parent, action, children:[] };
+    if (d < maxD) {
+      const ei = state.indexOf(0);
+      getMoves(state).forEach(mi => {
+        const ns = [...state];
+        [ns[ei], ns[mi]] = [ns[mi], ns[ei]];
+        node.children.push(buildNode(ns, d+1, maxD, node, getDir(ei, mi)));
+      });
+    }
+    return node;
+  }
+
+  function isGoal(s) { return s.every((v,i) => v === GOAL[i]); }
+
+  function stateToMatrix(s) {
+    return `[\n  [${s[0]},${s[1]},${s[2]}],\n  [${s[3]},${s[4]},${s[5]}],\n  [${s[6]},${s[7]},${s[8]}]\n]`;
+  }
+
+  function build() {
+    rootState = puzzle.getState();
+    if (!rootState || rootState.length !== 9) rootState = [1,2,3,4,0,5,6,7,8];
+    depth = 1;
+    const btn = document.getElementById('btn-expand');
+    if (btn) { btn.disabled = false; btn.textContent = 'Expand ↓'; }
+    const lbl = document.getElementById('tree-depth-label');
+    if (lbl) lbl.textContent = 'Depth: 1';
+    const panel = document.getElementById('node-info-panel');
+    if (panel) panel.classList.remove('show');
+    if (typeof d3 === 'undefined') {
+      const c = document.getElementById('tree-svg-container');
+      if (c) c.innerHTML = '<div style="padding:60px;text-align:center;color:#4a5080;font-size:14px;">D3 library not loaded. Check your internet connection and refresh the page.</div>';
+      return;
+    }
+    render();
+  }
+
+  function expand() {
+    if (depth >= MAX_DEPTH) {
+      document.getElementById('btn-expand').disabled = true;
+      document.getElementById('btn-expand').textContent = 'Max depth reached';
+      return;
+    }
+    depth++;
+    document.getElementById('tree-depth-label').textContent = `Depth: ${depth}`;
+    render();
+  }
+
+  function reset() {
+    depth = 1;
+    rootState = puzzle.getState();
+    if (!rootState || rootState.length !== 9) rootState = [1,2,3,4,0,5,6,7,8];
+    const btn = document.getElementById('btn-expand');
+    if (btn) { btn.disabled = false; btn.textContent = 'Expand ↓'; }
+    const lbl = document.getElementById('tree-depth-label');
+    if (lbl) lbl.textContent = 'Depth: 1';
+    const panel = document.getElementById('node-info-panel');
+    if (panel) panel.classList.remove('show');
+    render();
+  }
+
+  function render() {
+    const container = document.getElementById('tree-svg-container');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!rootState || rootState.length !== 9) return;
+
+    // Add zoom hint
+    const hint = document.createElement('div');
+    hint.className = 'zoom-hint';
+    hint.textContent = '🖱 Drag to pan · Scroll to zoom';
+    container.appendChild(hint);
+
+    const root = buildNode(rootState, 0, depth);
+
+    // Calculate tree dimensions based on depth
+    const NODE_W = 130;
+    const NODE_H = 130;
+    const hier = d3.hierarchy(root);
+    const nodeCount = hier.leaves().length;
+    const treeW = Math.max(nodeCount * NODE_W, 700);
+    const treeH = (depth + 1) * NODE_H + 80;
+
+    const CONTAINER_W = container.clientWidth || 900;
+    const CONTAINER_H = 420;
+
+    const svg = d3.select('#tree-svg-container')
+      .append('svg')
+      .attr('width', CONTAINER_W)
+      .attr('height', CONTAINER_H)
+      .style('display','block');
+
+    // Zoomable group
+    const g = svg.append('g');
+
+    // D3 zoom behavior — pan and scroll
+    const zoom = d3.zoom()
+      .scaleExtent([0.2, 3])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
+    // Build tree layout
+    const treeLayout = d3.tree().nodeSize([NODE_W, NODE_H]);
+    const layout = treeLayout(hier);
+
+    // Calculate initial centering transform
+    let minX = Infinity, maxX = -Infinity;
+    layout.descendants().forEach(d => {
+      if (d.x < minX) minX = d.x;
+      if (d.x > maxX) maxX = d.x;
+    });
+    const treeActualW = maxX - minX + NODE_W;
+    const initX = (CONTAINER_W - treeActualW) / 2 - minX + NODE_W / 2;
+    const initY = 40;
+    const initScale = Math.min(1, (CONTAINER_W - 40) / treeActualW);
+
+    // Apply initial transform centered
+    const initTransform = d3.zoomIdentity
+      .translate(CONTAINER_W / 2, initY)
+      .scale(initScale)
+      .translate(-(minX + maxX) / 2, 0);
+
+    svg.call(zoom.transform, initTransform);
+
+    // Draw curved links
+    g.selectAll('.d3-link')
+      .data(layout.links())
+      .join('path')
+      .attr('class','d3-link')
+      .attr('d', d3.linkVertical()
+        .x(d => d.x)
+        .y(d => d.y));
+
+    // Edge action labels (midpoint of each link)
+    g.selectAll('.d3-edge-label')
+      .data(layout.links())
+      .join('text')
+      .attr('class','d3-edge-label')
+      .attr('x', d => (d.source.x + d.target.x) / 2)
+      .attr('y', d => (d.source.y + d.target.y) / 2 - 4)
+      .attr('text-anchor','middle')
+      .text(d => d.target.data.action);
+
+    // Node groups
+    const node = g.selectAll('.d3-node')
+      .data(layout.descendants())
+      .join('g')
+      .attr('class','d3-node')
+      .attr('transform', d => `translate(${d.x},${d.y})`)
+      .style('cursor','pointer')
+      .on('click', (event, d) => { event.stopPropagation(); showNodeInfo(d); });
+
+    // Circles
+    node.append('circle')
+      .attr('r', 30)
+      .attr('fill', d => {
+        if (d.depth === 0) return '#6c63ff';
+        if (isGoal(d.data.state)) return '#10b981';
+        return '#22263a';
+      })
+      .attr('stroke', d => {
+        if (d.depth === 0) return '#9c94ff';
+        if (isGoal(d.data.state)) return '#34d399';
+        return '#3d4278';
+      })
+      .attr('stroke-width', 2);
+
+    // Row 1 of state: [s0,s1,s2]
+    node.append('text')
+      .attr('y', -8)
+      .attr('text-anchor','middle')
+      .style('font-size','9px')
+      .style('font-family','JetBrains Mono, monospace')
+      .style('fill','#c8caee')
+      .text(d => `[${d.data.state[0]},${d.data.state[1]},${d.data.state[2]}]`);
+
+    // Row 2 of state: [s3,s4,s5]
+    node.append('text')
+      .attr('y', 4)
+      .attr('text-anchor','middle')
+      .style('font-size','9px')
+      .style('font-family','JetBrains Mono, monospace')
+      .style('fill','#c8caee')
+      .text(d => `[${d.data.state[3]},${d.data.state[4]},${d.data.state[5]}]`);
+
+    // Row 3 of state: [s6,s7,s8]
+    node.append('text')
+      .attr('y', 16)
+      .attr('text-anchor','middle')
+      .style('font-size','9px')
+      .style('font-family','JetBrains Mono, monospace')
+      .style('fill','#c8caee')
+      .text(d => `[${d.data.state[6]},${d.data.state[7]},${d.data.state[8]}]`);
+
+    // Depth / goal label below circle
+    node.append('text')
+      .attr('y', 46)
+      .attr('text-anchor','middle')
+      .style('font-size','10px')
+      .style('fill', d => {
+        if (d.depth === 0) return '#9c94ff';
+        if (isGoal(d.data.state)) return '#34d399';
+        return '#4a5080';
+      })
+      .text(d => {
+        if (d.depth === 0) return 'initial';
+        if (isGoal(d.data.state)) return '✓ GOAL';
+        return `d=${d.depth}`;
+      });
+
+    // Hover effect — highlight ring
+    node.on('mouseenter', function() {
+      d3.select(this).select('circle')
+        .attr('stroke-width', 3)
+        .attr('stroke', '#f59e0b');
+    }).on('mouseleave', function(event, d) {
+      d3.select(this).select('circle')
+        .attr('stroke-width', 2)
+        .attr('stroke', d.depth === 0 ? '#9c94ff' : isGoal(d.data.state) ? '#34d399' : '#3d4278');
+    });
+  }
+
+  function showNodeInfo(d) {
+    const panel = document.getElementById('node-info-panel');
+    panel.classList.add('show');
+
+    document.getElementById('node-depth-label').textContent =
+      `Depth ${d.depth} · ${d.depth === 0 ? 'Initial State' : isGoal(d.data.state) ? '✓ Goal State!' : 'Intermediate State'}`;
+
+    document.getElementById('node-state-repr').textContent = stateToMatrix(d.data.state);
+
+    // Possible actions
+    const ei = d.data.state.indexOf(0);
+    const moves = getMoves(d.data.state);
+    const actTxt = moves.map(mi => {
+      const tile = d.data.state[mi];
+      const dir = getDir(ei, mi);
+      return `Move tile ${tile} ${dir}`;
+    }).join('\n');
+    document.getElementById('node-actions').textContent = actTxt || 'None';
+
+    // Path from root
+    const path = [];
+    let cur = d;
+    while (cur.parent) { path.unshift(cur.data.action || '?'); cur = cur.parent; }
+    document.getElementById('node-path').textContent =
+      path.length ? `Initial → ${path.join(' → ')}` : 'This IS the initial state';
+
+    panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  return { build, expand, reset };
+})();
+
+// ─── INIT ────────────────────────────────────────────────
+puzzle.init();
+</script>
+</body>
+</html>

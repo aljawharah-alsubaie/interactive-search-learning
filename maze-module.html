@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maze Navigator | IT426</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3352;--accent:#f472b6;--accent2:#a78bfa;--success:#10b981;--danger:#ef4444;--text:#e8eaf6;--text-dim:#8b90b8;--text-muted:#4a5080;}
+*{margin:0;padding:0;box-sizing:border-box;}button{color:inherit;font-family:inherit;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}nav a:hover{opacity:.7;}
+.nav-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--text-muted);}
+.hero{text-align:center;padding:50px 32px 32px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(244,114,182,.1) 0%,transparent 70%);}
+.hero-tag{display:inline-block;background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.4);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:16px;}
+.hero h1{font-size:clamp(24px,4vw,44px);font-weight:700;background:linear-gradient(135deg,#fff 40%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.hero p{color:var(--text-dim);font-size:15px;max-width:500px;margin:0 auto;}
+.steps-bar{display:flex;align-items:center;justify-content:center;padding:24px 32px;max-width:700px;margin:0 auto;}
+.step{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.sc{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-muted);transition:all .4s;z-index:2;position:relative;}
+.sc.active{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 16px rgba(244,114,182,.4);}
+.sc.done{border-color:var(--success);background:var(--success);color:#fff;}
+.sl{font-size:11px;color:var(--text-muted);font-weight:600;text-align:center;white-space:nowrap;transition:color .4s;}
+.sl.active{color:var(--accent);}.sl.done{color:var(--success);}
+.sline{flex:1;height:2px;background:var(--border);margin-top:-20px;margin-bottom:20px;z-index:1;transition:background .4s;}
+.sline.done{background:var(--success);}
+.section{max-width:1000px;margin:0 auto;padding:0 24px 80px;display:none;}
+.section.visible{display:block;animation:fadeUp .5s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.sec-title{font-size:22px;font-weight:700;margin-bottom:6px;}
+.sec-sub{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
+.card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.maze-layout{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;}
+@media(max-width:700px){.maze-layout{grid-template-columns:1fr;}}
+.maze-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+#maze-canvas{border-radius:12px;border:2px solid var(--border);display:block;}
+.dpad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;}
+.dpad-btn{width:44px;height:44px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);font-size:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.dpad-btn:hover{background:rgba(244,114,182,.15);border-color:var(--accent);}
+.dpad-btn:active{transform:scale(.9);}
+.stats-row{display:flex;gap:20px;align-items:center;}
+.sv{font-size:26px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.sl2{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#f472b6;white-space:pre;line-height:1.7;overflow-x:auto;}
+.code-comment{color:var(--text-muted);}
+.state-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px;}
+.path-log{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px;max-height:130px;overflow-y:auto;}
+.path-entry{padding:4px 8px;border-radius:5px;font-size:12px;color:var(--text-dim);display:flex;gap:8px;margin-bottom:2px;}
+.path-entry:nth-child(odd){background:rgba(255,255,255,.02);}
+.goal-banner{display:none;background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(244,114,182,.1));border:1px solid var(--success);border-radius:14px;padding:20px;text-align:center;margin-top:14px;}
+.goal-banner.show{display:block;animation:fadeUp .4s ease;}
+.goal-banner h3{font-size:18px;color:var(--success);margin-bottom:8px;}
+.goal-banner p{color:var(--text-dim);font-size:14px;margin-bottom:14px;}
+.qbox{background:linear-gradient(135deg,rgba(244,114,182,.07),rgba(167,139,250,.04));border:1px solid rgba(244,114,182,.25);border-radius:16px;padding:22px;margin-bottom:18px;}
+.qt{font-size:17px;font-weight:600;margin-bottom:16px;color:var(--text);}
+.options{display:flex;flex-direction:column;gap:9px;}
+.option{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px;font-size:14px;font-weight:500;text-align:left;width:100%;color:var(--text);}
+.option:hover{border-color:var(--accent);background:rgba(244,114,182,.07);}
+.option.correct-ans{border-color:var(--success);background:rgba(16,185,129,.1);color:var(--success);}
+.option.wrong-ans{border-color:var(--danger);background:rgba(239,68,68,.07);color:var(--danger);}
+.ol{background:var(--surface2);border-radius:6px;width:24px;height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+.option.correct-ans .ol{background:var(--success);color:#fff;}
+.option.wrong-ans .ol{background:var(--danger);color:#fff;}
+.feedback{display:none;border-radius:10px;padding:14px 16px;margin-top:14px;font-size:14px;line-height:1.6;}
+.feedback.show{display:block;animation:fadeUp .3s ease;}
+.feedback.correct{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+.feedback.wrong{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.fb-t{font-weight:700;margin-bottom:6px;}
+.expl{display:none;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:16px;}
+.expl.show{display:block;animation:fadeUp .4s ease;}
+.expl h3{color:var(--accent);font-size:15px;margin-bottom:10px;}
+.expl ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.expl li{display:flex;gap:8px;font-size:14px;color:var(--text-dim);}
+.expl li::before{content:"→";color:var(--accent);font-weight:700;flex-shrink:0;}
+.fcomp{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;transition:border-color .3s;}
+.fcomp.ok{border-color:var(--success);}.fcomp.bad{border-color:var(--danger);}
+.ftitle{font-size:15px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:8px;color:var(--text);}
+.fnum{background:var(--accent);color:#fff;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.fdesc{font-size:13px;color:var(--text-dim);margin-bottom:12px;}
+.gfb{display:none;margin-top:8px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;}
+.gfb.show{display:block;}
+.gfb.ok{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);}
+.gfb.bad{background:rgba(239,68,68,.08);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+.score-card{text-align:center;padding:36px 20px;background:linear-gradient(135deg,rgba(244,114,182,.1),rgba(167,139,250,.08));border:1px solid rgba(244,114,182,.3);border-radius:20px;}
+.score-big{font-size:68px;font-weight:700;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.score-lbl{color:var(--text-dim);font-size:15px;margin-bottom:24px;}
+.sbd{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:600px;margin:0 auto 20px;}
+.si{background:var(--surface2);border-radius:10px;padding:10px 6px;font-size:12px;color:var(--text-dim);border:1px solid var(--border);text-align:center;}
+.si.ok{border-color:var(--success);color:var(--success);}.si.bad{border-color:var(--danger);color:var(--danger);}
+.si-icon{font-size:18px;margin-bottom:3px;}
+.comp-card{text-align:center;padding:50px 20px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(244,114,182,.08));border:1px solid var(--success);border-radius:20px;}
+.comp-card h2{font-size:30px;font-weight:700;margin-bottom:10px;}
+.comp-card p{color:var(--text-dim);margin-bottom:24px;}
+.badges{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+.badge{background:var(--surface2);border:1px solid var(--border);padding:10px 14px;border-radius:10px;font-size:13px;color:var(--accent);font-weight:600;}
+.btn{padding:10px 20px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-p{background:var(--accent);color:#fff;}.btn-p:hover{background:#e05aaa;transform:translateY(-1px);}
+.btn-g{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);}.btn-g:hover{background:var(--border);color:var(--text);}
+.btn-f{width:100%;justify-content:center;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; Back to Exercises</a>
+  <div style="display:flex;gap:8px;"><span class="nav-badge">IT426 &middot; AI Systems</span><span class="nav-badge">KSU</span></div>
+</nav>
+<div class="hero">
+  <div class="hero-tag">Exercise 05 &middot; Grid States</div>
+  <h1>Maze Navigator &#129517;</h1>
+  <p>Guide the robot through the maze to the goal. Learn grid-based coordinate state representation.</p>
+</div>
+<div class="steps-bar">
+  <div class="step"><div class="sc active" id="sc1">1</div><div class="sl active" id="sl1">Navigate</div></div>
+  <div class="sline" id="sln1"></div>
+  <div class="step"><div class="sc" id="sc2">2</div><div class="sl" id="sl2">State Space</div></div>
+  <div class="sline" id="sln2"></div>
+  <div class="step"><div class="sc" id="sc3">3</div><div class="sl" id="sl3">Actions</div></div>
+  <div class="sline" id="sln3"></div>
+  <div class="step"><div class="sc" id="sc4">4</div><div class="sl" id="sl4">Formulate</div></div>
+</div>
+<section class="section visible" id="sec1">
+  <div class="sec-title">Step 1: Navigate the Maze &#129517;</div>
+  <div class="sec-sub">Use the arrow buttons (or keyboard arrows) to guide the robot to the goal. Watch the state (row, col) update every move!</div>
+  <div class="card">
+    <div class="maze-layout">
+      <div class="maze-wrap">
+        <canvas id="maze-canvas" width="300" height="300"></canvas>
+        <div class="dpad">
+          <div></div>
+          <button class="dpad-btn" onclick="move('up')">&#8593;</button>
+          <div></div>
+          <button class="dpad-btn" onclick="move('left')">&#8592;</button>
+          <div></div>
+          <button class="dpad-btn" onclick="move('right')">&#8594;</button>
+          <div></div>
+          <button class="dpad-btn" onclick="move('down')">&#8595;</button>
+          <div></div>
+        </div>
+        <div class="stats-row">
+          <div><div class="sv" id="step-count">0</div><div class="sl2">Steps</div></div>
+          <div style="width:1px;height:36px;background:var(--border);"></div>
+          <div><div class="sv" id="opt-steps">?</div><div class="sl2">Optimal</div></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-g" onclick="mazeReset()">&#128260; Reset</button>
+          <button class="btn btn-g" onclick="changeMaze()">&#128256; New Maze</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card-sm"><div class="state-label">Current State</div>
+          <div class="code-block" id="state-code"><span class="code-comment">// State = (row, col)</span>
+state = (0, 0)</div></div>
+        <div class="card-sm"><div class="state-label">State Space</div>
+          <div class="code-block" id="space-size"><span class="code-comment">// Non-wall cells</span>
+free_cells = ?</div></div>
+        <div class="card-sm"><div class="state-label">Path Taken</div>
+          <div class="path-log" id="path-log"><div style="color:var(--text-muted);font-size:12px;padding:4px 8px;">No moves yet</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="goal-banner" id="goal-banner">
+      <h3>&#127937; Goal Reached!</h3>
+      <p id="goal-msg">You made it!</p>
+      <button class="btn btn-p" onclick="goTo(2)">Continue &#8594;</button>
+    </div>
+  </div>
+  <div style="margin-top:14px;text-align:center;">
+    <button class="btn btn-g" onclick="goTo(2)" style="font-size:12px;opacity:.6;">Skip &#8594;</button>
+  </div>
+</section>
+<section class="section" id="sec2">
+  <div class="sec-title">Step 2: State Space of a Grid &#128208;</div>
+  <div class="sec-sub">In a grid maze, each free cell is a possible state. State space = all non-wall cells.</div>
+  <div class="card" style="margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <p style="font-size:14px;color:var(--text-dim);margin-bottom:14px;">For an M&#215;N grid with W walls:</p>
+        <div class="code-block">State = (row, col)
+rows : 0 to M-1
+cols : 0 to N-1
+
+Total cells  = M x N
+Wall cells   = W
+Valid states = M x N - W</div>
+      </div>
+      <div>
+        <p style="font-size:14px;color:var(--text-dim);margin-bottom:14px;">In our 6&#215;6 maze:</p>
+        <div class="code-block" id="maze-stats">Total = 36
+Walls = ?
+Free  = ?
+Start = (0,0)
+Goal  = (5,5)</div>
+      </div>
+    </div>
+  </div>
+  <div class="qbox">
+    <div class="qt">&#10067; Robot is at row 2, column 3. What is the correct state?</div>
+    <div class="options" id="q2-opts">
+      <button class="option" onclick="qSel('q2',this,'wrong')"><span class="ol">A</span><div>state = 23</div></button>
+      <button class="option" onclick="qSel('q2',this,'correct')"><span class="ol">B</span><div>state = (2, 3) &#8212; a coordinate tuple (row, col)</div></button>
+      <button class="option" onclick="qSel('q2',this,'wrong')"><span class="ol">C</span><div>state = the full 6&#215;6 grid</div></button>
+      <button class="option" onclick="qSel('q2',this,'wrong')"><span class="ol">D</span><div>state = "row2_col3"</div></button>
+    </div>
+    <div class="feedback" id="q2-fb"></div>
+  </div>
+  <div class="expl" id="q2-expl">
+    <h3>&#10003; (row, col) is the standard grid state representation</h3>
+    <ul>
+      <li>A coordinate pair fully describes the robot's position</li>
+      <li>We don't need the grid itself &#8212; it's fixed and never changes</li>
+      <li>Different from 8-puzzle where the entire board IS the state</li>
+    </ul>
+    <div style="margin-top:14px;"><button class="btn btn-p" onclick="goTo(3)">Continue &#8594;</button></div>
+  </div>
+</section>
+<section class="section" id="sec3">
+  <div class="sec-title">Step 3: Actions and Constraints &#128679;</div>
+  <div class="sec-sub">Not all 4 directions are valid &#8212; walls and boundaries block movement!</div>
+  <div class="card" style="margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div>
+        <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;">4 Possible Actions:</p>
+        <div class="code-block">Up    -&gt; (row-1, col)
+Down  -&gt; (row+1, col)
+Left  -&gt; (row, col-1)
+Right -&gt; (row, col+1)</div>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:10px;">Valid only if: in-bounds AND not a wall cell.</p>
+      </div>
+      <div>
+        <p style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;">Validity Check:</p>
+        <div class="code-block">def valid(r, c, grid):
+  if r &lt; 0 or r &gt;= ROWS:
+    return False
+  if c &lt; 0 or c &gt;= COLS:
+    return False
+  if grid[r][c] == WALL:
+    return False
+  return True</div>
+      </div>
+    </div>
+  </div>
+  <div class="qbox">
+    <div class="qt">&#10067; Robot at (0,0). Which actions are ALWAYS invalid regardless of walls?</div>
+    <div class="options" id="q3-opts">
+      <button class="option" onclick="qSel('q3',this,'correct')"><span class="ol">A</span><div>Up and Left &#8212; they produce row=-1 and col=-1, both out of bounds</div></button>
+      <button class="option" onclick="qSel('q3',this,'wrong')"><span class="ol">B</span><div>Down and Right &#8212; always blocked at the start</div></button>
+      <button class="option" onclick="qSel('q3',this,'wrong')"><span class="ol">C</span><div>All four directions are invalid at (0,0)</div></button>
+    </div>
+    <div class="feedback" id="q3-fb"></div>
+  </div>
+  <div class="expl" id="q3-expl">
+    <h3>&#10003; Up and Left are always out of bounds at (0,0)</h3>
+    <ul>
+      <li>Up &#8594; row = -1: outside the grid</li>
+      <li>Left &#8594; col = -1: outside the grid</li>
+      <li>Down/Right may be valid unless the adjacent cell is a wall</li>
+      <li>The transition model must check both bounds AND wall collision</li>
+    </ul>
+    <div style="margin-top:14px;"><button class="btn btn-p" onclick="goTo(4)">Continue to Formulation &#8594;</button></div>
+  </div>
+</section>
+<section class="section" id="sec4">
+  <div class="sec-title">Step 4: Formulate the Maze Problem &#128203;</div>
+  <div class="sec-sub">Define all five components for a robot navigating a 6&#215;6 grid from (0,0) to (5,5).</div>
+  <div id="fcomps">
+    <div class="fcomp" id="fc1"><div class="ftitle"><div class="fnum">1</div>State Representation</div><div class="fdesc">How do we describe where the robot is?</div>
+      <div class="options" id="fc1-o">
+        <button class="option" onclick="fSel('fc1',this,'correct')"><span class="ol">A</span><div>A coordinate pair (row, col) &#8212; the robot's grid position</div></button>
+        <button class="option" onclick="fSel('fc1',this,'wrong')"><span class="ol">B</span><div>The entire 6&#215;6 grid including all walls</div></button>
+        <button class="option" onclick="fSel('fc1',this,'wrong')"><span class="ol">C</span><div>The number of steps taken so far</div></button>
+      </div><div class="gfb" id="fc1-fb"></div>
+    </div>
+    <div class="fcomp" id="fc2"><div class="ftitle"><div class="fnum">2</div>Initial State</div><div class="fdesc">Where does the robot start?</div>
+      <div class="options" id="fc2-o">
+        <button class="option" onclick="fSel('fc2',this,'correct')"><span class="ol">A</span><div>(0, 0) &#8212; top-left corner of the grid</div></button>
+        <button class="option" onclick="fSel('fc2',this,'wrong')"><span class="ol">B</span><div>(5, 5) &#8212; the goal cell</div></button>
+        <button class="option" onclick="fSel('fc2',this,'wrong')"><span class="ol">C</span><div>Any free cell at random</div></button>
+      </div><div class="gfb" id="fc2-fb"></div>
+    </div>
+    <div class="fcomp" id="fc3"><div class="ftitle"><div class="fnum">3</div>Actions</div><div class="fdesc">What moves can the robot make?</div>
+      <div class="options" id="fc3-o">
+        <button class="option" onclick="fSel('fc3',this,'wrong')"><span class="ol">A</span><div>Teleport to any free cell instantly</div></button>
+        <button class="option" onclick="fSel('fc3',this,'correct')"><span class="ol">B</span><div>Up, Down, Left, Right &#8212; only if in-bounds and not a wall</div></button>
+        <button class="option" onclick="fSel('fc3',this,'wrong')"><span class="ol">C</span><div>Move diagonally only</div></button>
+      </div><div class="gfb" id="fc3-fb"></div>
+    </div>
+    <div class="fcomp" id="fc4"><div class="ftitle"><div class="fnum">4</div>Goal Test</div><div class="fdesc">When is the maze solved?</div>
+      <div class="options" id="fc4-o">
+        <button class="option" onclick="fSel('fc4',this,'wrong')"><span class="ol">A</span><div>When all cells have been visited</div></button>
+        <button class="option" onclick="fSel('fc4',this,'correct')"><span class="ol">B</span><div>When state == (5, 5) &#8212; the robot reached the goal position</div></button>
+        <button class="option" onclick="fSel('fc4',this,'wrong')"><span class="ol">C</span><div>When no more moves are possible</div></button>
+      </div><div class="gfb" id="fc4-fb"></div>
+    </div>
+    <div class="fcomp" id="fc5"><div class="ftitle"><div class="fnum">5</div>Path Cost</div><div class="fdesc">How is solution quality measured?</div>
+      <div class="options" id="fc5-o">
+        <button class="option" onclick="fSel('fc5',this,'correct')"><span class="ol">A</span><div>Number of steps &#8212; each move costs 1, optimal = shortest path length</div></button>
+        <button class="option" onclick="fSel('fc5',this,'wrong')"><span class="ol">B</span><div>Number of walls encountered</div></button>
+        <button class="option" onclick="fSel('fc5',this,'wrong')"><span class="ol">C</span><div>Distance from goal at the end</div></button>
+      </div><div class="gfb" id="fc5-fb"></div>
+    </div>
+  </div>
+  <button class="btn btn-p btn-f" onclick="grade()" style="margin-top:20px;font-size:16px;padding:14px;">&#10003; Submit Answers</button>
+  <div id="score-sec" style="display:none;margin-top:24px;animation:fadeUp .5s ease;">
+    <div class="score-card">
+      <div class="score-big" id="spct">--</div>
+      <div class="score-lbl" id="smsg">--</div>
+      <div class="sbd" id="sbd"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-g" id="retry-btn" onclick="retry()" style="display:none;">&#8635; Try Again</button>
+        <button class="btn btn-p" id="comp-btn" onclick="goTo(5)" style="display:none;">Complete &#127881;</button>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="sec5">
+  <div class="comp-card">
+    <div style="font-size:72px;margin-bottom:20px;">&#129517;</div>
+    <h2>Exercise Complete!</h2>
+    <p>You've mastered grid-based state representation and the maze problem formulation</p>
+    <div class="badges">
+      <div class="badge">&#10003; Maze Solved</div>
+      <div class="badge">&#10003; State = (row, col)</div>
+      <div class="badge">&#10003; Bounds Checked</div>
+      <div class="badge">&#10003; Problem Formulated</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-g" onclick="location.reload()">&#8635; Start Over</button>
+      <a href="index.html" class="btn btn-p" style="text-decoration:none;">&#8592; All Exercises</a>
+    </div>
+  </div>
+</section>
+<script>
+const ROWS=6,COLS=6,CELL=50;
+const MAZES=[
+  [[0,0,0,1,0,0],[0,1,0,1,0,1],[0,1,0,0,0,1],[0,1,1,1,0,1],[0,0,0,0,0,1],[1,1,0,1,0,0]],
+  [[0,0,1,0,0,0],[1,0,1,0,1,0],[1,0,0,0,1,0],[1,1,1,0,1,0],[0,0,0,0,1,0],[0,1,1,1,1,0]],
+  [[0,0,0,0,1,0],[1,1,0,1,1,0],[0,0,0,1,0,0],[0,1,1,1,0,1],[0,1,0,0,0,1],[0,0,0,1,0,0]],
+];
+let mazeIdx=0,grid=MAZES[0].map(r=>[...r]),robot={r:0,c:0},steps=0,pathTaken=[],visited=[];
+function countFree(g){return g.flat().filter(c=>c===0).length;}
+function bfs(g,sr,sc,er,ec){
+  const vis=Array.from({length:ROWS},()=>Array(COLS).fill(false)),q=[[sr,sc,0]];
+  vis[sr][sc]=true;
+  const D=[[-1,0],[1,0],[0,-1],[0,1]];
+  while(q.length){const[r,c,d]=q.shift();if(r===er&&c===ec)return d;for(const[dr,dc]of D){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!vis[nr][nc]&&g[nr][nc]===0){vis[nr][nc]=true;q.push([nr,nc,d+1]);}}}return '?';
+}
+function draw(){
+  const canvas=document.getElementById('maze-canvas'),ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const x=c*CELL,y=r*CELL;
+    if(grid[r][c]===1)ctx.fillStyle='#2e3352';
+    else if(r===0&&c===0)ctx.fillStyle='rgba(108,99,255,.25)';
+    else if(r===ROWS-1&&c===COLS-1)ctx.fillStyle='rgba(16,185,129,.25)';
+    else if(visited.some(v=>v.r===r&&v.c===c))ctx.fillStyle='rgba(244,114,182,.1)';
+    else ctx.fillStyle='#1a1d27';
+    ctx.fillRect(x+1,y+1,CELL-2,CELL-2);
+    ctx.strokeStyle='#2e3352';ctx.lineWidth=1;ctx.strokeRect(x+1,y+1,CELL-2,CELL-2);
+  }
+  ctx.font=`${CELL*.5}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🏁',(COLS-1)*CELL+CELL/2,(ROWS-1)*CELL+CELL/2);
+  ctx.fillText('🤖',robot.c*CELL+CELL/2,robot.r*CELL+CELL/2);
+  ctx.fillStyle='#4a5080';ctx.font='9px monospace';
+  for(let c=0;c<COLS;c++){ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(c,c*CELL+CELL/2,2);}
+  for(let r=0;r<ROWS;r++){ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(r,CELL-2,r*CELL+CELL/2);}
+}
+function updateUI(){
+  document.getElementById('state-code').innerHTML=`<span class="code-comment">// State = (row, col)</span>\nstate = (${robot.r}, ${robot.c})`;
+  const f=countFree(grid);
+  document.getElementById('space-size').innerHTML=`<span class="code-comment">// Non-wall cells</span>\nfree_cells = ${f}`;
+  document.getElementById('maze-stats').textContent=`Total = ${ROWS*COLS}\nWalls = ${ROWS*COLS-f}\nFree  = ${f}\nStart = (0,0)\nGoal  = (${ROWS-1},${COLS-1})`;
+}
+function move(dir){
+  const DR={up:-1,down:1,left:0,right:0},DC={up:0,down:0,left:-1,right:1};
+  const nr=robot.r+DR[dir],nc=robot.c+DC[dir];
+  if(nr<0||nr>=ROWS||nc<0||nc>=COLS||grid[nr][nc]===1)return;
+  if(!visited.some(v=>v.r===robot.r&&v.c===robot.c))visited.push({r:robot.r,c:robot.c});
+  robot={r:nr,c:nc};steps++;
+  pathTaken.push(`(${nr},${nc})`);
+  document.getElementById('step-count').textContent=steps;
+  draw();updateUI();
+  const log=document.getElementById('path-log');
+  log.innerHTML=pathTaken.slice(-8).reverse().map((p,i)=>`<div class="path-entry"><span style="color:var(--text-muted);font-size:10px;">${steps-i}</span><span style="color:var(--accent);">${p}</span></div>`).join('');
+  if(nr===ROWS-1&&nc===COLS-1){
+    const opt=bfs(grid,0,0,ROWS-1,COLS-1);
+    document.getElementById('goal-banner').classList.add('show');
+    document.getElementById('goal-msg').textContent=`Goal in ${steps} steps! Optimal: ${opt}.${steps===opt?' Perfect!':''}`;
+  }
+}
+function mazeReset(){
+  robot={r:0,c:0};steps=0;pathTaken=[];visited=[];
+  document.getElementById('step-count').textContent=0;
+  document.getElementById('goal-banner').classList.remove('show');
+  document.getElementById('path-log').innerHTML='<div style="color:var(--text-muted);font-size:12px;padding:4px 8px;">No moves yet</div>';
+  document.getElementById('opt-steps').textContent=bfs(grid,0,0,ROWS-1,COLS-1);
+  draw();updateUI();
+}
+function changeMaze(){mazeIdx=(mazeIdx+1)%MAZES.length;grid=MAZES[mazeIdx].map(r=>[...r]);mazeReset();}
+document.addEventListener('keydown',e=>{const m={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};if(m[e.key]){e.preventDefault();move(m[e.key]);}});
+function qSel(qid,btn,result){
+  document.getElementById(`${qid}-opts`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));
+  const fb=document.getElementById(`${qid}-fb`);
+  if(result==='correct'){btn.classList.add('correct-ans');fb.className='feedback show correct';fb.innerHTML='<div class="fb-t">Correct!</div>';document.getElementById(`${qid}-expl`)?.classList.add('show');document.getElementById(`${qid}-opts`).querySelectorAll('.option').forEach(o=>o.disabled=true);}
+  else{btn.classList.add('wrong-ans');fb.className='feedback show wrong';fb.innerHTML='<div class="fb-t">Not quite - try again.</div>';}
+}
+const fa={fc1:null,fc2:null,fc3:null,fc4:null,fc5:null};
+const ff={fc1:{correct:"State (row,col) is compact and complete.",wrong:"The state only needs the robot's position -- (row,col) is enough."},fc2:{correct:"The robot starts at (0,0) -- top-left corner.",wrong:"Start position is (0,0) by convention."},fc3:{correct:"Up/Down/Left/Right, valid only if in-bounds and not a wall.",wrong:"Actions are the 4 directions subject to bounds and wall constraints."},fc4:{correct:"Goal test: current state == (5,5).",wrong:"The goal is reaching the exit cell (5,5)."},fc5:{correct:"Each step costs 1 -- BFS finds the shortest path.",wrong:"Path cost = number of steps, each move has equal cost of 1."}};
+function fSel(fc,btn,result){document.getElementById(`${fc}-o`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));btn.classList.add(result==='correct'?'correct-ans':'wrong-ans');fa[fc]=result;}
+function grade(){
+  let correct=0;const names=['State','Initial','Actions','Goal','Cost'];const sbd=document.getElementById('sbd');sbd.innerHTML='';
+  ['fc1','fc2','fc3','fc4','fc5'].forEach((fc,i)=>{const ok=fa[fc]==='correct';if(ok)correct++;document.getElementById(fc).classList.toggle('ok',ok);document.getElementById(fc).classList.toggle('bad',!ok);const fb=document.getElementById(`${fc}-fb`);fb.className=`gfb show ${ok?'ok':'bad'}`;fb.textContent=fa[fc]===null?'No answer selected.':ff[fc][ok?'correct':'wrong'];sbd.innerHTML+=`<div class="si ${ok?'ok':'bad'}"><div class="si-icon">${ok?'✅':'❌'}</div><div>${names[i]}</div></div>`;});
+  const pct=Math.round(correct/5*100);document.getElementById('spct').textContent=`${pct}%`;document.getElementById('smsg').textContent=pct===100?'Perfect!':pct>=80?'Excellent!':'Review and retry';document.getElementById('score-sec').style.display='block';document.getElementById('score-sec').scrollIntoView({behavior:'smooth'});document.getElementById(pct>=80?'comp-btn':'retry-btn').style.display='inline-flex';
+}
+function retry(){Object.keys(fa).forEach(k=>fa[k]=null);['fc1','fc2','fc3','fc4','fc5'].forEach(fc=>{document.getElementById(fc).classList.remove('ok','bad');document.getElementById(`${fc}-fb`).className='gfb';document.getElementById(`${fc}-o`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));});document.getElementById('score-sec').style.display='none';document.getElementById('retry-btn').style.display='none';document.getElementById('comp-btn').style.display='none';window.scrollTo({top:0,behavior:'smooth'});}
+function goTo(n){for(let i=1;i<=5;i++)document.getElementById(`sec${i}`)?.classList.remove('visible');document.getElementById(`sec${n}`)?.classList.add('visible');window.scrollTo({top:0,behavior:'smooth'});for(let i=1;i<=4;i++){const c=document.getElementById(`sc${i}`),l=document.getElementById(`sl${i}`),ln=document.getElementById(`sln${i}`);c.className='sc';l.className='sl';if(ln)ln.className='sline';if(i<n){c.classList.add('done');c.textContent='✓';l.classList.add('done');if(ln)ln.classList.add('done');}else if(i===n){c.classList.add('active');c.textContent=i;l.classList.add('active');}else{c.textContent=i;}}}
+mazeReset();
+</script>
+</body>
+</html>
