@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Romania Map | IT426 Interactive Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3352;--accent:#f59e0b;--accent2:#6c63ff;--success:#10b981;--danger:#ef4444;--text:#e8eaf6;--text-dim:#8b90b8;--text-muted:#4a5080;}
+*{margin:0;padding:0;box-sizing:border-box;}button{color:inherit;font-family:inherit;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}
+nav a:hover{opacity:.7;}
+.nav-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--text-dim);}
+.hero{text-align:center;padding:50px 32px 30px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(245,158,11,.12) 0%,transparent 70%);}
+.hero-tag{display:inline-block;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:16px;}
+.hero h1{font-size:clamp(24px,4vw,44px);font-weight:700;background:linear-gradient(135deg,#fff 40%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
+.hero p{color:var(--text-dim);font-size:15px;max-width:500px;margin:0 auto;}
+.steps-bar{display:flex;align-items:center;justify-content:center;padding:24px 32px;max-width:700px;margin:0 auto;}
+.step{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.step-circle{width:38px;height:38px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-muted);transition:all .4s;z-index:2;position:relative;}
+.step-circle.active{border-color:var(--accent);background:var(--accent);color:#000;box-shadow:0 0 18px rgba(245,158,11,.4);}
+.step-circle.done{border-color:var(--success);background:var(--success);color:#fff;}
+.step-label{font-size:11px;color:var(--text-muted);font-weight:600;text-align:center;white-space:nowrap;transition:color .4s;}
+.step-label.active{color:var(--accent);}.step-label.done{color:var(--success);}
+.step-line{flex:1;height:2px;background:var(--border);margin-top:-20px;margin-bottom:20px;z-index:1;transition:background .4s;}
+.step-line.done{background:var(--success);}
+.section{max-width:1100px;margin:0 auto;padding:0 24px 80px;display:none;}
+.section.visible{display:block;animation:fadeUp .5s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.section-title{font-size:22px;font-weight:700;margin-bottom:6px;}
+.section-subtitle{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
+.card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;}
+
+/* MAP */
+.map-container{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-height:460px;}
+#romania-svg{width:100%;height:460px;display:block;}
+.city-group{cursor:pointer;}
+.city-group circle{transition:all .25s;}
+.city-group:hover circle{filter:brightness(1.5);}
+.city-group.start circle{fill:#f59e0b;stroke:#fcd34d;stroke-width:3;}
+.city-group.end circle{fill:#10b981;stroke:#34d399;stroke-width:3;}
+.city-group.visited circle{fill:#6c63ff;stroke:#9c94ff;stroke-width:2;}
+.city-group.current circle{fill:#f59e0b;stroke:#fff;stroke-width:3;filter:drop-shadow(0 0 8px rgba(245,158,11,.8));}
+.city-group.path circle{fill:#00d4aa;stroke:#fff;stroke-width:2;}
+.road{stroke:#2e3352;stroke-width:2;fill:none;transition:stroke .3s,stroke-width .3s;}
+.road.highlighted{stroke:#f59e0b;stroke-width:4;stroke-dasharray:none;}
+.road.path-road{stroke:#00d4aa;stroke-width:4;}
+.road-label{font-size:10px;fill:#4a5080;pointer-events:none;font-family:'JetBrains Mono',monospace;}
+
+.map-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);}
+.legend-dot{width:12px;height:12px;border-radius:50%;}
+
+/* PANEL LAYOUT */
+.map-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+@media(max-width:800px){.map-layout{grid-template-columns:1fr;}}
+
+/* PATH INFO */
+.path-step{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:13px;background:var(--surface2);border:1px solid var(--border);margin-bottom:6px;animation:fadeUp .3s ease;}
+.path-step .city-name{font-weight:700;color:var(--accent);}
+.path-step .cost-badge{background:rgba(245,158,11,.15);color:var(--accent);padding:2px 8px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;margin-left:auto;}
+.total-cost{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(108,99,255,.1));border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px 16px;text-align:center;margin-top:10px;}
+.total-cost .cost-val{font-size:32px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.total-cost .cost-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+
+/* CODE BLOCK */
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#00d4aa;white-space:pre;line-height:1.7;overflow-x:auto;}
+.code-comment{color:var(--text-muted);}
+.state-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px;}
+
+/* QUESTIONS */
+.question-box{background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(108,99,255,.04));border:1px solid rgba(245,158,11,.25);border-radius:16px;padding:22px;margin-bottom:20px;}
+.question-text{font-size:17px;font-weight:600;margin-bottom:16px;color:var(--text);}
+.options{display:flex;flex-direction:column;gap:9px;}
+.option{background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:13px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:flex-start;gap:10px;font-size:14px;font-weight:500;text-align:left;width:100%;color:var(--text);}
+.option:hover{border-color:var(--accent);background:rgba(245,158,11,.07);}
+.option.correct-ans{border-color:var(--success);background:rgba(16,185,129,.1);color:var(--success);}
+.option.wrong-ans{border-color:var(--danger);background:rgba(239,68,68,.07);color:var(--danger);}
+.opt-letter{background:var(--surface2);border-radius:6px;width:24px;height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+.option.correct-ans .opt-letter{background:var(--success);color:#fff;}
+.option.wrong-ans .opt-letter{background:var(--danger);color:#fff;}
+.opt-sub{font-size:12px;color:var(--text-muted);margin-top:3px;font-weight:400;}
+.feedback{display:none;border-radius:10px;padding:14px 16px;margin-top:14px;font-size:14px;line-height:1.6;}
+.feedback.show{display:block;animation:fadeUp .3s ease;}
+.feedback.correct{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+.feedback.wrong{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.fb-title{font-weight:700;margin-bottom:6px;}
+.explanation-box{display:none;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:16px;}
+.explanation-box.show{display:block;animation:fadeUp .4s ease;}
+.explanation-box h3{color:var(--accent);font-size:15px;margin-bottom:10px;}
+.explanation-box ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.explanation-box li{display:flex;gap:8px;font-size:14px;color:var(--text-dim);}
+.explanation-box li::before{content:"→";color:var(--accent);font-weight:700;flex-shrink:0;}
+
+/* FORMULATION */
+.form-comp{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;transition:border-color .3s;}
+.form-comp.graded-correct{border-color:var(--success);}
+.form-comp.graded-wrong{border-color:var(--danger);}
+.comp-title{font-size:15px;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:8px;color:var(--text);}
+.comp-num{background:var(--accent);color:#000;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.comp-desc{font-size:13px;color:var(--text-dim);margin-bottom:12px;}
+.grade-feedback{display:none;margin-top:8px;padding:9px 12px;border-radius:8px;font-size:13px;font-weight:500;}
+.grade-feedback.show{display:block;}
+.grade-feedback.ok{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.3);}
+.grade-feedback.bad{background:rgba(239,68,68,.08);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+
+/* SCORE */
+.score-card{text-align:center;padding:40px 20px;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(108,99,255,.08));border:1px solid rgba(245,158,11,.3);border-radius:20px;}
+.score-big{font-size:72px;font-weight:700;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.score-label{color:var(--text-dim);font-size:15px;margin-bottom:28px;}
+.score-breakdown{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;max-width:600px;margin:0 auto 24px;}
+.score-item{background:var(--surface2);border-radius:10px;padding:10px 6px;font-size:12px;color:var(--text-dim);border:1px solid var(--border);text-align:center;}
+.score-item.ok{border-color:var(--success);color:var(--success);}
+.score-item.bad{border-color:var(--danger);color:var(--danger);}
+.score-icon{font-size:18px;margin-bottom:3px;}
+.completion-card{text-align:center;padding:60px 20px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(245,158,11,.08));border:1px solid var(--success);border-radius:20px;}
+.completion-card h2{font-size:32px;font-weight:700;margin-bottom:10px;}
+.completion-card p{color:var(--text-dim);margin-bottom:28px;}
+.badges{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
+.badge{background:var(--surface2);border:1px solid var(--border);padding:10px 16px;border-radius:10px;font-size:13px;color:var(--accent);font-weight:600;}
+.btn{padding:10px 20px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#e08d00;transform:translateY(-1px);}
+.btn-ghost{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--border);color:var(--text);}
+.btn-full{width:100%;justify-content:center;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">← Back to Modules</a>
+  <div style="display:flex;gap:10px;"><span class="nav-badge">IT426 · AI Systems</span><span class="nav-badge">KSU</span></div>
+</nav>
+<div class="hero">
+  <div class="hero-tag">Module 3 · Path Cost & Search</div>
+  <h1>Romania Road Trip 🗺️</h1>
+  <p>Navigate from Arad to Bucharest — understand state space, path cost, and optimal solutions</p>
+</div>
+<div class="steps-bar">
+  <div class="step"><div class="step-circle active" id="sc1">1</div><div class="step-label active" id="sl1">Explore Map</div></div>
+  <div class="step-line" id="line1"></div>
+  <div class="step"><div class="step-circle" id="sc2">2</div><div class="step-label" id="sl2">Find Path</div></div>
+  <div class="step-line" id="line2"></div>
+  <div class="step"><div class="step-circle" id="sc3">3</div><div class="step-label" id="sl3">Compare Paths</div></div>
+  <div class="step-line" id="line3"></div>
+  <div class="step"><div class="step-circle" id="sc4">4</div><div class="step-label" id="sl4">Formulate</div></div>
+</div>
+
+<!-- SEC 1: EXPLORE -->
+<section class="section visible" id="sec1">
+  <div class="section-title">Step 1: Explore the Map 🗺️</div>
+  <div class="section-subtitle">Click any city to see its connections and distances. This is the state space!</div>
+  <div class="card">
+    <div class="map-layout">
+      <div>
+        <div class="map-container">
+          <svg id="romania-svg" viewBox="0 0 700 460"></svg>
+        </div>
+        <div class="map-legend" style="margin-top:12px;">
+          <div class="legend-item"><div class="legend-dot" style="background:#8b90b8"></div>City</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Selected/Start</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Goal (Bucharest)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Path</div>
+        </div>
+      </div>
+      <div class="state-log" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card-sm">
+          <div class="state-label">Selected City</div>
+          <div class="code-block" id="city-info">Click a city to see its state and connections</div>
+        </div>
+        <div class="card-sm">
+          <div class="state-label">State Representation</div>
+          <div class="code-block" id="state-repr"><span class="code-comment">// Click a city</span>
+state = None</div>
+        </div>
+        <div class="card-sm">
+          <div class="state-label">Connections</div>
+          <div id="connections-list" style="font-size:13px;color:var(--text-dim);">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:16px;text-align:center;">
+    <button class="btn btn-primary" onclick="goToSection(2)">Find a Path →</button>
+    <button class="btn btn-ghost" onclick="goToSection(2)" style="margin-left:8px;font-size:12px;opacity:.6;">Skip</button>
+  </div>
+</section>
+
+<!-- SEC 2: FIND PATH -->
+<section class="section" id="sec2">
+  <div class="section-title">Step 2: Build a Path from Arad to Bucharest 🚗</div>
+  <div class="section-subtitle">Click cities one by one to build your own path. Can you find the shortest one?</div>
+  <div class="card">
+    <div class="map-layout">
+      <div>
+        <div class="map-container"><svg id="romania-svg-2" viewBox="0 0 700 460"></svg></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="resetPath()">🔄 Reset Path</button>
+          <span style="font-size:13px;color:var(--text-dim);align-self:center;" id="path-instruction">Start: click Arad to begin your journey</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card-sm">
+          <div class="state-label">Your Path</div>
+          <div id="path-steps" style="min-height:60px;">
+            <div style="color:var(--text-muted);font-size:13px;">No cities visited yet</div>
+          </div>
+          <div class="total-cost" id="total-cost-box" style="display:none;">
+            <div class="cost-val" id="total-cost-val">0</div>
+            <div class="cost-lbl">Total km</div>
+          </div>
+        </div>
+        <div id="path-success" style="display:none;background:rgba(16,185,129,.1);border:1px solid var(--success);border-radius:12px;padding:16px;text-align:center;animation:fadeUp .4s ease;">
+          <div style="font-size:18px;font-weight:700;color:var(--success);margin-bottom:8px;">🎉 Reached Bucharest!</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">Total distance: <strong id="success-dist" style="color:var(--accent)">0</strong> km</div>
+          <button class="btn btn-primary" onclick="goToSection(3)">Compare All Paths →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEC 3: COMPARE -->
+<section class="section" id="sec3">
+  <div class="section-title">Step 3: Compare Paths — Which is Optimal? ⚖️</div>
+  <div class="section-subtitle">Here are three different routes from Arad to Bucharest. Which one has the lowest cost?</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;" id="paths-comparison">
+      <!-- Generated by JS -->
+    </div>
+    <div class="question-box">
+      <div class="question-text">❓ Which path is the optimal (lowest cost) solution?</div>
+      <div class="options" id="qc-options">
+        <button class="option" onclick="selectOpt('qc',this,'wrong')"><span class="opt-letter">A</span><div><div>Path A: Arad → Sibiu → Fagaras → Bucharest</div><div class="opt-sub">450 km</div></div></button>
+        <button class="option" onclick="selectOpt('qc',this,'correct')"><span class="opt-letter">B</span><div><div>Path B: Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucharest</div><div class="opt-sub">418 km</div></div></button>
+        <button class="option" onclick="selectOpt('qc',this,'wrong')"><span class="opt-letter">C</span><div><div>Path C: Arad → Timisoara → Lugoj → Mehadia → Drobeta → Craiova → Bucharest</div><div class="opt-sub">615 km</div></div></button>
+      </div>
+      <div class="feedback" id="qc-feedback"></div>
+    </div>
+    <div class="explanation-box" id="qc-explanation">
+      <h3>✅ Path B is optimal — 418 km!</h3>
+      <ul>
+        <li>Arad→Sibiu (140) + Sibiu→Rimnicu (80) + Rimnicu→Pitesti (97) + Pitesti→Bucharest (101) = <strong>418 km</strong></li>
+        <li>Path A looks shorter on the map but the distances add up to 450 km</li>
+        <li>An <strong>optimal solution</strong> is the one with minimum path cost — not necessarily fewest steps</li>
+        <li>This is exactly why search algorithms like <strong>A*</strong> and <strong>UCS</strong> are needed!</li>
+      </ul>
+      <div style="margin-top:14px;"><button class="btn btn-primary" onclick="goToSection(4)">Continue to Formulation →</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- SEC 4: FORMULATE -->
+<section class="section" id="sec4">
+  <div class="section-title">Step 4: Formulate the Romania Problem 📋</div>
+  <div class="section-subtitle">Define all five components for the holiday-in-Romania search problem.</div>
+  <div id="form-comps">
+    <div class="form-comp" id="fc1">
+      <div class="comp-title"><div class="comp-num">1</div>State Representation</div>
+      <div class="comp-desc">What does each state in the Romania problem capture?</div>
+      <div class="options" id="fc1-opts">
+        <button class="option" onclick="fcSel('fc1',this,'correct')"><span class="opt-letter">A</span><div>The current city the traveler is in</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">B</span><div>The current city + all cities already visited</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">C</span><div>The full route taken so far</div></button>
+      </div>
+      <div class="grade-feedback" id="fc1-fb"></div>
+    </div>
+    <div class="form-comp" id="fc2">
+      <div class="comp-title"><div class="comp-num">2</div>Initial State</div>
+      <div class="comp-desc">Where does the search begin?</div>
+      <div class="options" id="fc2-opts">
+        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">A</span><div>In(Bucharest)</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'correct')"><span class="opt-letter">B</span><div>In(Arad)</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">C</span><div>Any city in Romania</div></button>
+      </div>
+      <div class="grade-feedback" id="fc2-fb"></div>
+    </div>
+    <div class="form-comp" id="fc3">
+      <div class="comp-title"><div class="comp-num">3</div>Actions</div>
+      <div class="comp-desc">What actions are available from a city?</div>
+      <div class="options" id="fc3-opts">
+        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">A</span><div>Drive to any city in Romania</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'correct')"><span class="opt-letter">B</span><div>Drive to any directly connected (adjacent) city</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">C</span><div>Only drive to cities closer to Bucharest</div></button>
+      </div>
+      <div class="grade-feedback" id="fc3-fb"></div>
+    </div>
+    <div class="form-comp" id="fc4">
+      <div class="comp-title"><div class="comp-num">4</div>Goal Test</div>
+      <div class="comp-desc">When is the problem solved?</div>
+      <div class="options" id="fc4-opts">
+        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">A</span><div>When all cities have been visited</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">B</span><div>When fewer than 3 moves remain</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'correct')"><span class="opt-letter">C</span><div>When the current state is In(Bucharest)</div></button>
+      </div>
+      <div class="grade-feedback" id="fc4-fb"></div>
+    </div>
+    <div class="form-comp" id="fc5">
+      <div class="comp-title"><div class="comp-num">5</div>Path Cost</div>
+      <div class="comp-desc">How is the cost of a route measured?</div>
+      <div class="options" id="fc5-opts">
+        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">A</span><div>Number of cities visited</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">B</span><div>Number of roads taken</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'correct')"><span class="opt-letter">C</span><div>Total distance in km (sum of road distances)</div></button>
+      </div>
+      <div class="grade-feedback" id="fc5-fb"></div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="gradeRomania()" style="margin-top:20px;font-size:16px;padding:14px;">✅ Submit Answers</button>
+  <div id="score-section" style="display:none;margin-top:28px;animation:fadeUp .5s ease;">
+    <div class="score-card">
+      <div class="score-big" id="score-pct">—</div>
+      <div class="score-label" id="score-msg">—</div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="btn-retry" onclick="retryRomania()" style="display:none;">↺ Try Again</button>
+        <button class="btn btn-primary" id="btn-complete" onclick="goToSection(5)" style="display:none;">Complete Module 🎉</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEC 5: COMPLETE -->
+<section class="section" id="sec5">
+  <div class="completion-card">
+    <div style="font-size:72px;margin-bottom:20px;">🗺️</div>
+    <h2>Module Complete!</h2>
+    <p>You've mastered the Romania road trip problem formulation</p>
+    <div class="badges">
+      <div class="badge">✓ State Space Explored</div>
+      <div class="badge">✓ Path Built</div>
+      <div class="badge">✓ Optimal Path Found</div>
+      <div class="badge">✓ Problem Formulated</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="location.reload()">↺ Start Over</button>
+      <a href="index.html" class="btn btn-primary" style="text-decoration:none;">← Back to Modules</a>
+    </div>
+  </div>
+</section>
+
+<script>
+// ── ROMANIA DATA ──────────────────────────────────────────
+const CITIES = {
+  Arad:         {x:90,  y:110},
+  Zerind:       {x:115, y:70},
+  Oradea:       {x:160, y:40},
+  Timisoara:    {x:80,  y:200},
+  Lugoj:        {x:150, y:230},
+  Mehadia:      {x:175, y:280},
+  Drobeta:      {x:155, y:335},
+  Craiova:      {x:250, y:380},
+  Sibiu:        {x:285, y:165},
+  Rimnicu:      {x:310, y:230},
+  Pitesti:      {x:370, y:295},
+  Fagaras:      {x:370, y:155},
+  Bucharest:    {x:460, y:320},
+  Giurgiu:      {x:430, y:390},
+  Urziceni:     {x:520, y:295},
+  Hirsova:      {x:590, y:280},
+  Eforie:       {x:620, y:355},
+  Vaslui:       {x:565, y:185},
+  Iasi:         {x:545, y:120},
+  Neamt:        {x:490, y:75},
+};
+
+const ROADS = [
+  ['Arad','Zerind',75],['Arad','Sibiu',140],['Arad','Timisoara',118],
+  ['Zerind','Oradea',71],['Oradea','Sibiu',151],
+  ['Timisoara','Lugoj',111],['Lugoj','Mehadia',70],['Mehadia','Drobeta',75],
+  ['Drobeta','Craiova',120],['Craiova','Rimnicu',146],['Craiova','Pitesti',138],
+  ['Sibiu','Fagaras',99],['Sibiu','Rimnicu',80],
+  ['Fagaras','Bucharest',211],['Rimnicu','Pitesti',97],['Pitesti','Bucharest',101],
+  ['Bucharest','Giurgiu',90],['Bucharest','Urziceni',85],
+  ['Urziceni','Hirsova',98],['Hirsova','Eforie',86],
+  ['Urziceni','Vaslui',142],['Vaslui','Iasi',92],['Iasi','Neamt',87],
+];
+
+// Build adjacency
+const ADJ = {};
+Object.keys(CITIES).forEach(c => ADJ[c] = []);
+ROADS.forEach(([a,b,d]) => {
+  ADJ[a].push({city:b, dist:d});
+  ADJ[b].push({city:a, dist:d});
+});
+
+// ── SVG RENDERER ──────────────────────────────────────────
+function drawMap(svgId, opts={}) {
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const {highlightedCities=[], pathEdges=[], onCityClick=null, currentCity=null} = opts;
+
+  // Roads
+  ROADS.forEach(([a,b,d]) => {
+    const ca = CITIES[a], cb = CITIES[b];
+    const isPath = pathEdges.some(([x,y]) => (x===a&&y===b)||(x===b&&y===a));
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', ca.x); line.setAttribute('y1', ca.y);
+    line.setAttribute('x2', cb.x); line.setAttribute('y2', cb.y);
+    line.setAttribute('class', isPath ? 'road path-road' : 'road');
+    svg.appendChild(line);
+    // Distance label
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x', (ca.x+cb.x)/2+3);
+    txt.setAttribute('y', (ca.y+cb.y)/2-3);
+    txt.setAttribute('class','road-label');
+    txt.textContent = d;
+    svg.appendChild(txt);
+  });
+
+  // Cities
+  Object.entries(CITIES).forEach(([name, pos]) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class','city-group');
+    let cls = '';
+    if (name === 'Bucharest') cls = 'end';
+    else if (name === currentCity || name === opts.selectedCity) cls = 'current';
+    else if (highlightedCities.includes(name)) cls = 'path';
+    else if (name === 'Arad') cls = 'start';
+    if (cls) g.classList.add(cls);
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', 9);
+    circle.setAttribute('fill', '#22263a'); circle.setAttribute('stroke','#6c63ff'); circle.setAttribute('stroke-width','2');
+    g.appendChild(circle);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+    label.setAttribute('x', pos.x+12); label.setAttribute('y', pos.y+4);
+    label.setAttribute('font-size','11'); label.setAttribute('fill','#8b90b8');
+    label.setAttribute('font-family','Space Grotesk, sans-serif'); label.setAttribute('font-weight','600');
+    label.textContent = name === 'Rimnicu' ? 'Rimnicu V.' : name;
+    g.appendChild(label);
+
+    if (onCityClick) g.addEventListener('click', () => onCityClick(name));
+    svg.appendChild(g);
+  });
+}
+
+// ── SECTION 1: EXPLORE ───────────────────────────────────
+function exploreClick(name) {
+  document.getElementById('city-info').textContent = `City: ${name}\nAdjacent to ${ADJ[name].length} cities`;
+  document.getElementById('state-repr').innerHTML = `<span class="code-comment">// Current city = state</span>\nstate = In(${name})`;
+  const conns = ADJ[name].map(c => `  ${c.city} — ${c.dist} km`).join('\n');
+  document.getElementById('connections-list').innerHTML =
+    `<div class="code-block" style="color:var(--accent);">${conns}</div>`;
+  drawMap('romania-svg', {highlightedCities: ADJ[name].map(c=>c.city), onCityClick: exploreClick});
+}
+drawMap('romania-svg', { onCityClick: exploreClick });
+
+// ── SECTION 2: BUILD PATH ─────────────────────────────────
+let userPath = [];
+let userPathEdges = [];
+let pathStarted = false;
+
+function resetPath() {
+  userPath = []; userPathEdges = []; pathStarted = false;
+  drawMap('romania-svg-2', {onCityClick: handlePathClick});
+  document.getElementById('path-steps').innerHTML = '<div style="color:var(--text-muted);font-size:13px;">No cities visited yet</div>';
+  document.getElementById('total-cost-box').style.display = 'none';
+  document.getElementById('path-success').style.display = 'none';
+  document.getElementById('path-instruction').textContent = 'Start: click Arad to begin your journey';
+}
+
+function handlePathClick(name) {
+  if (!pathStarted) {
+    if (name !== 'Arad') { document.getElementById('path-instruction').textContent = '⚠️ Must start from Arad!'; return; }
+    pathStarted = true;
+    userPath = ['Arad'];
+    drawMap('romania-svg-2', {currentCity:'Arad', onCityClick:handlePathClick});
+    renderPathSteps();
+    return;
+  }
+  const last = userPath[userPath.length-1];
+  const conn = ADJ[last].find(c => c.city === name);
+  if (!conn) { document.getElementById('path-instruction').textContent = `⚠️ ${name} is not connected to ${last}!`; return; }
+  if (userPath.includes(name) && name !== 'Bucharest') { document.getElementById('path-instruction').textContent = '⚠️ Already visited that city!'; return; }
+  userPath.push(name);
+  userPathEdges.push([last, name]);
+  document.getElementById('path-instruction').textContent = `✓ Moved to ${name}`;
+  drawMap('romania-svg-2', {currentCity:name, highlightedCities:userPath, pathEdges:userPathEdges, onCityClick:handlePathClick});
+  renderPathSteps();
+  if (name === 'Bucharest') {
+    const total = userPathEdges.reduce((s,[a,b]) => s + (ROADS.find(r=>(r[0]===a&&r[1]===b)||(r[0]===b&&r[1]===a))||[0,0,0])[2], 0);
+    document.getElementById('success-dist').textContent = total;
+    document.getElementById('path-success').style.display = 'block';
+  }
+}
+
+function renderPathSteps() {
+  if (userPath.length === 0) return;
+  let total = 0;
+  let html = userPath.map((city, i) => {
+    if (i === 0) return `<div class="path-step"><span style="font-size:16px;">📍</span><span class="city-name">${city}</span><span class="cost-badge">Start</span></div>`;
+    const prev = userPath[i-1];
+    const road = ROADS.find(r=>(r[0]===prev&&r[1]===city)||(r[0]===city&&r[1]===prev));
+    const d = road ? road[2] : 0;
+    total += d;
+    return `<div class="path-step"><span style="color:var(--text-muted);">→</span><span class="city-name">${city}</span><span class="cost-badge">+${d} km</span></div>`;
+  }).join('');
+  document.getElementById('path-steps').innerHTML = html;
+  if (total > 0) {
+    document.getElementById('total-cost-box').style.display = 'block';
+    document.getElementById('total-cost-val').textContent = total;
+  }
+}
+
+// ── SECTION 3: COMPARE PATHS ──────────────────────────────
+const THREE_PATHS = [
+  {label:'Path A',cities:['Arad','Sibiu','Fagaras','Bucharest'],edges:[['Arad','Sibiu'],['Sibiu','Fagaras'],['Fagaras','Bucharest']],cost:450,color:'#f59e0b'},
+  {label:'Path B (Optimal)',cities:['Arad','Sibiu','Rimnicu','Pitesti','Bucharest'],edges:[['Arad','Sibiu'],['Sibiu','Rimnicu'],['Rimnicu','Pitesti'],['Pitesti','Bucharest']],cost:418,color:'#10b981'},
+  {label:'Path C',cities:['Arad','Timisoara','Lugoj','Mehadia','Drobeta','Craiova','Bucharest'],edges:[['Arad','Timisoara'],['Timisoara','Lugoj'],['Lugoj','Mehadia'],['Mehadia','Drobeta'],['Drobeta','Craiova'],['Craiova','Pitesti'],['Pitesti','Bucharest']],cost:615,color:'#ef4444'},
+];
+
+function buildPathComparison() {
+  const container = document.getElementById('paths-comparison');
+  THREE_PATHS.forEach(p => {
+    const div = document.createElement('div');
+    div.style.cssText = `background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;`;
+    div.innerHTML = `
+      <div style="font-weight:700;font-size:14px;color:${p.color};margin-bottom:10px;">${p.label}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">${p.cities.join(' → ')}</div>
+      <div style="font-size:28px;font-weight:700;color:${p.color};font-family:'JetBrains Mono',monospace;">${p.cost} km</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ── NAV ───────────────────────────────────────────────────
+function goToSection(n) {
+  for(let i=1;i<=5;i++) document.getElementById(`sec${i}`)?.classList.remove('visible');
+  document.getElementById(`sec${n}`)?.classList.add('visible');
+  window.scrollTo({top:0,behavior:'smooth'});
+  updateSteps(n);
+  if(n===2) { setTimeout(()=>{ drawMap('romania-svg-2',{onCityClick:handlePathClick}); resetPath(); },100); }
+}
+
+function updateSteps(active) {
+  for(let i=1;i<=4;i++){
+    const c=document.getElementById(`sc${i}`),l=document.getElementById(`sl${i}`),ln=document.getElementById(`line${i}`);
+    c.className='step-circle';l.className='step-label';if(ln)ln.className='step-line';
+    if(i<active){c.classList.add('done');c.textContent='✓';l.classList.add('done');if(ln)ln.classList.add('done');}
+    else if(i===active){c.classList.add('active');c.textContent=i;l.classList.add('active');}
+    else{c.textContent=i;}
+  }
+}
+
+function selectOpt(qid, btn, result) {
+  document.getElementById(`${qid}-options`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));
+  if(result==='correct'){
+    btn.classList.add('correct-ans');
+    const fb=document.getElementById(`${qid}-feedback`);
+    fb.className='feedback show correct';
+    fb.innerHTML='<div class="fb-title">✅ Correct!</div>Path B at 418 km is the optimal solution.';
+    document.getElementById(`${qid}-explanation`)?.classList.add('show');
+    document.getElementById(`${qid}-options`).querySelectorAll('.option').forEach(o=>o.disabled=true);
+  } else {
+    btn.classList.add('wrong-ans');
+    const fb=document.getElementById(`${qid}-feedback`);
+    fb.className='feedback show wrong';
+    fb.innerHTML='<div class="fb-title">❌ Not quite.</div>Add up all the road distances for each path.';
+  }
+}
+
+// ── FORMULATION ───────────────────────────────────────────
+const fcAnswers={fc1:null,fc2:null,fc3:null,fc4:null,fc5:null};
+const fcFeedback={
+  fc1:{correct:"✅ The state is simply which city the traveler is currently in.",wrong:"❌ For simple path-finding, the state is just the current city. (TSP would need visited cities too.)"},
+  fc2:{correct:"✅ The search starts at In(Arad) — we're on holiday and need to reach Bucharest.",wrong:"❌ The problem says we start in Arad — In(Arad) is the initial state."},
+  fc3:{correct:"✅ You can only drive to cities with a direct road connection.",wrong:"❌ Actions are limited to roads that directly connect cities."},
+  fc4:{correct:"✅ The goal is reaching Bucharest — In(Bucharest) is the goal test.",wrong:"❌ The goal is specifically to reach Bucharest for the flight."},
+  fc5:{correct:"✅ Path cost = total km traveled. The optimal path minimizes total distance.",wrong:"❌ The cost function is the total distance in km, not number of cities or roads."}
+};
+
+function fcSel(fc,btn,result){
+  document.getElementById(`${fc}-opts`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));
+  btn.classList.add(result==='correct'?'correct-ans':'wrong-ans');
+  fcAnswers[fc]=result;
+}
+function gradeRomania(){
+  let correct=0;
+  const names=['State Rep','Initial State','Actions','Goal Test','Path Cost'];
+  const breakdown=document.getElementById('score-breakdown');
+  breakdown.innerHTML='';
+  ['fc1','fc2','fc3','fc4','fc5'].forEach((fc,i)=>{
+    const ok=fcAnswers[fc]==='correct';if(ok)correct++;
+    const comp=document.getElementById(fc),fb=document.getElementById(`${fc}-fb`);
+    comp.classList.add(ok?'graded-correct':'graded-wrong');
+    fb.className=`grade-feedback show ${ok?'ok':'bad'}`;
+    fb.textContent=fcAnswers[fc]===null?'⚠️ No answer selected.':fcFeedback[fc][ok?'correct':'wrong'];
+    breakdown.innerHTML+=`<div class="score-item ${ok?'ok':'bad'}"><div class="score-icon">${ok?'✅':'❌'}</div><div>${names[i]}</div></div>`;
+  });
+  const pct=Math.round(correct/5*100);
+  document.getElementById('score-pct').textContent=`${pct}%`;
+  document.getElementById('score-msg').textContent=pct===100?'🏆 Perfect!':pct>=80?'🎉 Excellent!':'💪 Review and try again';
+  document.getElementById('score-section').style.display='block';
+  document.getElementById('score-section').scrollIntoView({behavior:'smooth'});
+  document.getElementById(pct>=80?'btn-complete':'btn-retry').style.display='inline-flex';
+}
+function retryRomania(){
+  Object.keys(fcAnswers).forEach(k=>fcAnswers[k]=null);
+  ['fc1','fc2','fc3','fc4','fc5'].forEach(fc=>{
+    document.getElementById(fc).classList.remove('graded-correct','graded-wrong');
+    document.getElementById(`${fc}-fb`).className='grade-feedback';
+    document.getElementById(`${fc}-opts`).querySelectorAll('.option').forEach(o=>o.classList.remove('correct-ans','wrong-ans'));
+  });
+  document.getElementById('score-section').style.display='none';
+  document.getElementById('btn-retry').style.display='none';
+  document.getElementById('btn-complete').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+buildPathComparison();
+</script>
+</body>
+</html>
