@@ -26,17 +26,17 @@ nav a:hover{opacity:.7;}
 .step-label.active{color:var(--accent);}.step-label.done{color:var(--success);}
 .step-line{flex:1;height:2px;background:var(--border);margin-top:-20px;margin-bottom:20px;z-index:1;transition:background .4s;}
 .step-line.done{background:var(--success);}
-.section{max-width:1100px;margin:0 auto;padding:0 16px 60px;display:none;}
+.section{max-width:1100px;margin:0 auto;padding:0 16px 60px;display:none;overflow:hidden;}
 .section.visible{display:block;animation:fadeUp .5s ease;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .section-title{font-size:22px;font-weight:700;margin-bottom:6px;}
 .section-subtitle{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;overflow:hidden;}
-.card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;overflow:hidden;min-width:0;}
+.card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;overflow:hidden;min-width:0;}
 
 /* MAP */
-.map-container{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow-x:auto;min-height:320px;}
-#romania-svg{width:100%;min-width:560px;height:380px;display:block;}
+.map-container{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+#romania-svg{width:100%;height:auto;display:block;}
 .city-group{cursor:pointer;}
 .city-group circle{transition:all .25s;}
 .city-group:hover circle{filter:brightness(1.5);}
@@ -67,7 +67,7 @@ nav a:hover{opacity:.7;}
 .total-cost .cost-lbl{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
 
 /* CODE BLOCK */
-.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#00d4aa;white-space:pre;line-height:1.7;overflow-x:auto;}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#00d4aa;white-space:pre-wrap;word-break:break-word;line-height:1.7;overflow-x:auto;}
 .code-comment{color:var(--text-muted);}
 .state-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px;}
 
@@ -151,7 +151,7 @@ nav a:hover{opacity:.7;}
     /* Fix canvas overflow */
     #tsp-canvas{width:100% !important;height:auto !important;}
     #maze-canvas{width:100% !important;height:auto !important;}
-    #romania-svg, #romania-svg-2{height:320px;}
+    #romania-svg, #romania-svg-2{width:100%;height:auto;}
     /* Fix hanoi pegs */
     .pegs-row{gap:0;overflow-x:auto;}
     .disk{font-size:10px;}
@@ -193,7 +193,7 @@ nav a:hover{opacity:.7;}
     .card-sm{padding:10px;}
     .map-layout{grid-template-columns:1fr !important;}
     .map-container{min-height:auto !important;overflow-x:auto;}
-    #romania-svg,#romania-svg-2{min-width:500px;height:320px;}
+    #romania-svg,#romania-svg-2{height:auto;}
     .map-legend{gap:10px;}
     .code-block{font-size:11px;padding:10px;}
     .question-box,.qbox{padding:16px;}
@@ -233,7 +233,7 @@ nav a:hover{opacity:.7;}
     <div class="map-layout">
       <div>
         <div class="map-container">
-          <svg id="romania-svg" viewBox="0 0 700 460"></svg>
+          <svg id="romania-svg" viewBox="0 0 560 390"></svg>
         </div>
         <div class="map-legend" style="margin-top:12px;">
           <div class="legend-item"><div class="legend-dot" style="background:#8b90b8"></div>City</div>
@@ -242,17 +242,17 @@ nav a:hover{opacity:.7;}
           <div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Path</div>
         </div>
       </div>
-      <div class="state-log" style="display:flex;flex-direction:column;gap:12px;">
-        <div class="card-sm">
+      <div class="state-log" style="display:flex;flex-direction:column;gap:12px;min-width:0;overflow:hidden;">
+        <div class="card-sm" style="overflow:hidden;min-width:0;">
           <div class="state-label">Selected City</div>
-          <div class="code-block" id="city-info">Click a city to see its state and connections</div>
+          <div class="code-block" id="city-info" style="white-space:pre-wrap;word-break:break-word;">Click a city to see its state and connections</div>
         </div>
-        <div class="card-sm">
+        <div class="card-sm" style="overflow:hidden;min-width:0;">
           <div class="state-label">State Representation</div>
           <div class="code-block" id="state-repr"><span class="code-comment">// Click a city</span>
 state = None</div>
         </div>
-        <div class="card-sm">
+        <div class="card-sm" style="overflow:hidden;min-width:0;">
           <div class="state-label">Connections</div>
           <div id="connections-list" style="font-size:13px;color:var(--text-dim);">—</div>
         </div>
@@ -272,7 +272,7 @@ state = None</div>
   <div class="card">
     <div class="map-layout">
       <div>
-        <div class="map-container"><svg id="romania-svg-2" viewBox="0 0 700 460"></svg></div>
+        <div class="map-container"><svg id="romania-svg-2" viewBox="0 0 560 390"></svg></div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-ghost" onclick="resetPath()">🔄 Reset Path</button>
           <span style="font-size:13px;color:var(--text-dim);align-self:center;" id="path-instruction">Start: click Arad to begin your journey</span>
@@ -421,26 +421,26 @@ state = None</div>
 <script>
 // ── ROMANIA DATA ──────────────────────────────────────────
 const CITIES = {
-  Arad:         {x:90,  y:110},
-  Zerind:       {x:115, y:70},
-  Oradea:       {x:160, y:40},
-  Timisoara:    {x:80,  y:200},
-  Lugoj:        {x:150, y:230},
-  Mehadia:      {x:175, y:280},
-  Drobeta:      {x:155, y:335},
-  Craiova:      {x:250, y:380},
-  Sibiu:        {x:285, y:165},
-  Rimnicu:      {x:310, y:230},
-  Pitesti:      {x:370, y:295},
-  Fagaras:      {x:370, y:155},
-  Bucharest:    {x:460, y:320},
-  Giurgiu:      {x:430, y:390},
-  Urziceni:     {x:520, y:295},
-  Hirsova:      {x:590, y:280},
-  Eforie:       {x:620, y:355},
-  Vaslui:       {x:565, y:185},
-  Iasi:         {x:545, y:120},
-  Neamt:        {x:490, y:75},
+  Arad:         {x:75,  y:105},
+  Zerind:       {x:100, y:65},
+  Oradea:       {x:148, y:38},
+  Timisoara:    {x:68,  y:178},
+  Lugoj:        {x:130, y:205},
+  Mehadia:      {x:152, y:252},
+  Drobeta:      {x:132, y:300},
+  Craiova:      {x:208, y:336},
+  Sibiu:        {x:242, y:148},
+  Rimnicu:      {x:265, y:205},
+  Pitesti:      {x:315, y:262},
+  Fagaras:      {x:318, y:138},
+  Bucharest:    {x:390, y:282},
+  Giurgiu:      {x:368, y:348},
+  Urziceni:     {x:438, y:262},
+  Hirsova:      {x:490, y:248},
+  Eforie:       {x:510, y:312},
+  Vaslui:       {x:470, y:160},
+  Iasi:         {x:452, y:100},
+  Neamt:        {x:405, y:58},
 };
 
 const ROADS = [
@@ -507,7 +507,7 @@ function drawMap(svgId, opts={}) {
 
     const label = document.createElementNS('http://www.w3.org/2000/svg','text');
     label.setAttribute('x', pos.x+12); label.setAttribute('y', pos.y+4);
-    label.setAttribute('font-size','11'); label.setAttribute('fill','#8b90b8');
+    label.setAttribute('font-size','10'); label.setAttribute('fill','#8b90b8');
     label.setAttribute('font-family','Space Grotesk, sans-serif'); label.setAttribute('font-weight','600');
     label.textContent = name === 'Rimnicu' ? 'Rimnicu V.' : name;
     g.appendChild(label);
@@ -523,7 +523,7 @@ function exploreClick(name) {
   document.getElementById('state-repr').innerHTML = `<span class="code-comment">// Current city = state</span>\nstate = In(${name})`;
   const conns = ADJ[name].map(c => `  ${c.city} — ${c.dist} km`).join('\n');
   document.getElementById('connections-list').innerHTML =
-    `<div class="code-block" style="color:var(--accent);">${conns}</div>`;
+    `<div class="code-block" style="color:var(--accent);white-space:pre-wrap;word-break:break-all;">${conns}</div>`;
   drawMap('romania-svg', {highlightedCities: ADJ[name].map(c=>c.city), onCityClick: exploreClick});
 }
 drawMap('romania-svg', { onCityClick: exploreClick });

@@ -54,7 +54,7 @@ nav a:hover{opacity:.7;}
 .vw-layout{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;}
 @media(max-width:700px){.vw-layout{grid-template-columns:1fr;}}
 
-.vw-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;max-width:380px;margin:0 auto;}
+.vw-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;width:100%;margin:0 auto;}
 .vw-room{
   background:var(--surface2);border:2px solid var(--border);border-radius:12px;
   padding:20px 12px;text-align:center;position:relative;
@@ -250,6 +250,40 @@ nav a:hover{opacity:.7;}
     #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
   }
 
+
+  @media(max-width:640px){
+    nav{padding:11px 14px;}
+    .vw-layout{grid-template-columns:1fr !important;gap:16px !important;}
+    .vw-grid{gap:6px !important;}
+    .room-card{padding:12px !important;}
+    .room-card .room-title{font-size:16px;}
+    .cost-bar{padding:10px 14px;gap:12px;}
+    .cost-val{font-size:24px;}
+    .hero h1{font-size:22px !important;}
+    .hero p{font-size:13px;}
+    .hero-tag{font-size:10px;padding:3px 10px;}
+    .steps-bar{padding:12px 6px;overflow-x:auto;}
+    .sc,.step-circle{width:32px !important;height:32px !important;font-size:11px !important;}
+    .step-label,.sl{font-size:9px !important;}
+    .sline,.step-line{margin-top:-16px !important;margin-bottom:16px !important;}
+    .section{padding:0 12px 50px !important;}
+    .sec-title,.section-title{font-size:17px !important;}
+    .sec-sub,.section-subtitle{font-size:12px !important;}
+    .card{padding:14px !important;}
+    .card-sm{padding:10px !important;}
+    .qbox,.question-box{padding:14px !important;}
+    .qt,.question-text{font-size:14px !important;}
+    .option{padding:10px 12px !important;font-size:13px !important;}
+    .score-big,.score-big{font-size:52px !important;}
+    .sbd,.score-breakdown{grid-template-columns:repeat(3,1fr) !important;}
+    .hanoi-layout,.maze-layout,.tsp-layout{grid-template-columns:1fr !important;}
+    #tsp-canvas{max-width:100% !important;}
+    #maze-canvas{max-width:100% !important;}
+    .pegs-row{overflow-x:auto;}
+    .disk{font-size:10px !important;}
+    .diff-btns{flex-wrap:wrap;}
+    .hanoi-controls{flex-wrap:wrap;gap:8px;}
+  }
 </style>
 </head>
 <body>
@@ -257,7 +291,7 @@ nav a:hover{opacity:.7;}
 <!-- NAV -->
 <nav>
   <a href="index.html">← Back to Exercises</a>
-  <div style="display:flex;gap:10px;align-items:center;">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
     <span class="nav-badge">IT426 · AI Systems</span>
     <span class="nav-badge">King Saud University</span>
   </div>
@@ -318,7 +352,7 @@ nav a:hover{opacity:.7;}
           <button class="btn btn-primary" onclick="goToSection(2)" style="background:var(--success);color:#fff;">Continue →</button>
         </div>
 
-        <div style="margin-top:12px;display:flex;gap:8px;">
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-ghost" onclick="vacuum.reset()" style="flex:1;">🔄 Reset</button>
           <button class="btn btn-ghost" onclick="goToSection(2)" style="font-size:12px;opacity:.6;">Skip →</button>
         </div>
