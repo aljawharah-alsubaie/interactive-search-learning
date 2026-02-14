@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza Delivery | AI Search Interactive Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c10;--surface:#12151e;--surface2:#1c2030;--border:#252a3a;
+  --pizza:#ff6b35;--pizza2:#ffa500;--green:#22c55e;--blue:#38bdf8;
+  --text:#f0f2ff;--text-dim:#7c85a8;--text-muted:#3d4460;
+  --success:#10b981;--danger:#ef4444;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+button{font-family:inherit;color:inherit;cursor:pointer;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* NAV */
+nav{background:rgba(18,21,30,.95);border-bottom:1px solid var(--border);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+nav a{color:var(--pizza);text-decoration:none;font-size:13px;font-weight:600;}
+nav a:hover{opacity:.7;}
+.nav-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:11px;color:var(--text-dim);}
+
+/* HERO */
+.hero{text-align:center;padding:48px 20px 36px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(255,107,53,.15),transparent 65%);pointer-events:none;}
+.chapter-tag{display:inline-flex;align-items:center;gap:7px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.35);color:var(--pizza);padding:5px 14px;border-radius:30px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px;}
+.hero h1{font-size:clamp(26px,5vw,50px);font-weight:800;margin-bottom:10px;line-height:1.1;}
+.hero h1 span{background:linear-gradient(135deg,var(--pizza),var(--pizza2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero p{color:var(--text-dim);font-size:14px;max-width:480px;margin:0 auto;}
+
+/* PROGRESS BAR */
+.progress-wrap{max-width:700px;margin:0 auto;padding:20px 20px 0;}
+.progress-track{display:flex;align-items:center;gap:0;}
+.prog-step{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;position:relative;}
+.prog-dot{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-muted);transition:all .4s;z-index:2;flex-shrink:0;}
+.prog-dot.active{border-color:var(--pizza);background:var(--pizza);color:#fff;box-shadow:0 0 18px rgba(255,107,53,.45);}
+.prog-dot.done{border-color:var(--success);background:var(--success);color:#fff;}
+.prog-label{font-size:9px;color:var(--text-muted);font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.04em;max-width:56px;line-height:1.3;}
+.prog-label.active{color:var(--pizza);}
+.prog-label.done{color:var(--success);}
+.prog-line{flex:1;height:2px;background:var(--border);margin-top:-17px;margin-bottom:17px;transition:background .4s;}
+.prog-line.done{background:var(--success);}
+
+/* SCENES */
+.scene{max-width:800px;margin:0 auto;padding:24px 16px 80px;display:none;}
+.scene.active{display:block;animation:slideIn .5s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+/* SCENE CARD */
+.scene-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.scene-header{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.scene-num{background:linear-gradient(135deg,var(--pizza),var(--pizza2));color:#fff;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+.scene-title{font-size:18px;font-weight:700;}
+.scene-body{padding:22px;}
+
+/* MAP */
+.map-area{background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;position:relative;min-height:200px;}
+.map-canvas{width:100%;height:180px;display:block;}
+
+/* SPEECH BUBBLE */
+.bubble{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px;}
+.bubble-avatar{font-size:32px;flex-shrink:0;line-height:1;}
+.bubble-text{background:var(--surface2);border:1px solid var(--border);border-radius:0 14px 14px 14px;padding:12px 16px;font-size:14px;color:var(--text);line-height:1.55;flex:1;}
+.bubble-text strong{color:var(--pizza);}
+
+/* QUESTION */
+.question-wrap{background:linear-gradient(135deg,rgba(255,107,53,.08),rgba(255,165,0,.04));border:1px solid rgba(255,107,53,.3);border-radius:16px;padding:20px;margin-bottom:16px;}
+.q-text{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px;}
+.q-text::before{content:'❓';font-size:18px;flex-shrink:0;}
+.choices{display:flex;flex-direction:column;gap:8px;}
+.choice{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;text-align:left;width:100%;color:var(--text);}
+.choice:hover:not(:disabled){border-color:var(--pizza);background:rgba(255,107,53,.08);}
+.choice.correct{border-color:var(--success);background:rgba(16,185,129,.1);color:var(--success);}
+.choice.wrong{border-color:var(--danger);background:rgba(239,68,68,.08);color:var(--danger);}
+.choice-key{background:var(--surface);border-radius:7px;width:26px;height:26px;min-width:26px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text-dim);border:1px solid var(--border);}
+.choice.correct .choice-key{background:var(--success);color:#fff;border-color:var(--success);}
+.choice.wrong .choice-key{background:var(--danger);color:#fff;border-color:var(--danger);}
+
+/* MULTI SELECT */
+.multi-choice{background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:11px 14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;text-align:left;width:100%;color:var(--text);}
+.multi-choice:hover{border-color:var(--pizza);background:rgba(255,107,53,.06);}
+.multi-choice.selected{border-color:var(--pizza);background:rgba(255,107,53,.1);color:var(--text);}
+.multi-choice.correct{border-color:var(--success);background:rgba(16,185,129,.1);color:var(--success);}
+.multi-choice.wrong{border-color:var(--danger);background:rgba(239,68,68,.07);color:var(--danger);}
+.checkbox{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .2s;}
+.multi-choice.selected .checkbox{background:var(--pizza);border-color:var(--pizza);color:#fff;}
+.multi-choice.correct .checkbox{background:var(--success);border-color:var(--success);color:#fff;}
+.multi-choice.wrong .checkbox{background:var(--danger);border-color:var(--danger);color:#fff;}
+
+/* FEEDBACK */
+.feedback{display:none;border-radius:12px;padding:14px 16px;margin-top:14px;font-size:13px;line-height:1.55;}
+.feedback.show{display:block;animation:slideIn .3s ease;}
+.feedback.correct{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+.feedback.wrong{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.fb-icon{font-size:16px;margin-right:4px;}
+
+/* STATE BOX */
+.state-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#38bdf8;white-space:pre-wrap;word-break:break-word;line-height:1.8;margin-bottom:14px;}
+.state-comment{color:var(--text-muted);}
+.state-highlight{color:var(--pizza);font-weight:600;}
+
+/* TRANSITION VISUAL */
+.trans-visual{display:flex;align-items:center;gap:8px;margin:14px 0;flex-wrap:wrap;}
+.trans-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--blue);flex:1;min-width:140px;}
+.trans-arrow{font-size:22px;color:var(--pizza);flex-shrink:0;display:flex;align-items:center;}
+.trans-action{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);color:var(--pizza);padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;text-align:center;}
+
+/* PATH COST VISUAL */
+.cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
+.cost-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
+.cost-item.selected{border-color:var(--pizza);background:rgba(255,107,53,.08);}
+.cost-item.all{border-color:var(--success);background:rgba(16,185,129,.08);}
+.cost-icon{font-size:26px;margin-bottom:6px;}
+.cost-val{font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--pizza);}
+.cost-lbl{font-size:11px;color:var(--text-dim);}
+
+/* INSIGHT BOX */
+.insight{background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(108,99,255,.06));border:1px solid rgba(56,189,248,.3);border-radius:14px;padding:16px;margin-top:14px;}
+.insight-title{font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.insight p{font-size:13px;color:var(--text-dim);line-height:1.6;}
+.insight strong{color:var(--text);}
+
+/* CELEBRATION */
+.celebration{display:none;text-align:center;padding:24px;background:linear-gradient(135deg,rgba(255,107,53,.1),rgba(16,185,129,.08));border:1px solid rgba(255,107,53,.3);border-radius:16px;margin-top:16px;}
+.celebration.show{display:block;animation:popIn .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.celebration h3{font-size:20px;font-weight:800;color:var(--pizza);margin-bottom:6px;}
+.celebration p{color:var(--text-dim);font-size:13px;margin-bottom:16px;}
+.confetti{font-size:28px;letter-spacing:4px;margin-bottom:10px;}
+
+/* BUTTONS */
+.btn{padding:11px 22px;border-radius:11px;border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-pizza{background:linear-gradient(135deg,var(--pizza),var(--pizza2));color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3);}
+.btn-pizza:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(255,107,53,.4);}
+.btn-ghost{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--border);color:var(--text);}
+.btn-full{width:100%;justify-content:center;}
+.btn-check{background:rgba(255,107,53,.12);color:var(--pizza);border:1px solid rgba(255,107,53,.3);}
+.btn-check:hover{background:rgba(255,107,53,.2);}
+
+/* SUMMARY CARD */
+.summary-table{width:100%;border-collapse:collapse;}
+.summary-table tr{border-bottom:1px solid var(--border);}
+.summary-table tr:last-child{border:none;}
+.summary-table td{padding:12px 14px;font-size:13px;}
+.summary-table td:first-child{color:var(--text-muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;width:35%;}
+.summary-table td:last-child{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+.complete-card{text-align:center;padding:48px 20px;background:linear-gradient(135deg,rgba(255,107,53,.1),rgba(16,185,129,.08));border:1px solid var(--pizza);border-radius:20px;}
+.complete-card h2{font-size:28px;font-weight:800;margin-bottom:10px;}
+.complete-card p{color:var(--text-dim);margin-bottom:24px;font-size:14px;}
+.badges{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+.badge{background:var(--surface2);border:1px solid var(--border);padding:8px 14px;border-radius:10px;font-size:12px;color:var(--pizza);font-weight:700;}
+
+/* MAP DOTS */
+.map-dot{transition:all .4s;}
+
+/* Mobile */
+@media(max-width:600px){
+  .hero{padding:32px 14px 24px;}
+  .hero h1{font-size:24px;}
+  .progress-wrap{padding:16px 14px 0;}
+  .prog-dot{width:28px;height:28px;font-size:11px;}
+  .prog-label{font-size:8px;max-width:44px;}
+  .scene{padding:16px 12px 60px;}
+  .scene-body{padding:16px;}
+  .scene-header{padding:16px 16px 12px;}
+  .scene-title{font-size:15px;}
+  .cost-grid{grid-template-columns:1fr;}
+  .trans-visual{flex-direction:column;}
+  .trans-arrow{transform:rotate(90deg);}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">← Back to Exercises</a>
+  <div style="display:flex;gap:8px;"><span class="nav-badge">IT426 · AI Systems</span><span class="nav-badge">KSU</span></div>
+</nav>
+
+<div class="hero">
+  <div class="chapter-tag">🍕 Interactive Story · Problem Formulation</div>
+  <h1>The <span>Pizza Delivery</span> Problem</h1>
+  <p>Follow the driver's journey — and learn all 5 components of AI problem formulation along the way!</p>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="prog-step"><div class="prog-dot active" id="pd1">1</div><div class="prog-label active" id="pl1">Initial State</div></div>
+    <div class="prog-line" id="pln1"></div>
+    <div class="prog-step"><div class="prog-dot" id="pd2">2</div><div class="prog-label" id="pl2">Actions</div></div>
+    <div class="prog-line" id="pln2"></div>
+    <div class="prog-step"><div class="prog-dot" id="pd3">3</div><div class="prog-label" id="pl3">Transition</div></div>
+    <div class="prog-line" id="pln3"></div>
+    <div class="prog-step"><div class="prog-dot" id="pd4">4</div><div class="prog-label" id="pl4">Goal Test</div></div>
+    <div class="prog-line" id="pln4"></div>
+    <div class="prog-step"><div class="prog-dot" id="pd5">5</div><div class="prog-label" id="pl5">Path Cost</div></div>
+    <div class="prog-line" id="pln5"></div>
+    <div class="prog-step"><div class="prog-dot" id="pd6">6</div><div class="prog-label" id="pl6">Summary</div></div>
+  </div>
+</div>
+
+<!-- ══ SCENE 1: INITIAL STATE ══ -->
+<div class="scene active" id="scene1">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">1</div>
+      <div class="scene-title">🎬 The Driver Starts His Shift</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">🧑‍🍳</div>
+        <div class="bubble-text">I've got <strong>3 pizza orders</strong> ready! I need to deliver all of them. Let me check the map...</div>
+      </div>
+
+      <div class="map-area">
+        <canvas class="map-canvas" id="map1" width="600" height="180"></canvas>
+      </div>
+
+      <div class="state-box" id="state1-display"><span class="state-comment">// What is the Initial State?</span>
+state = ???</div>
+
+      <div class="question-wrap">
+        <div class="q-text">What information fully describes the driver's starting situation?</div>
+        <div class="choices" id="q1-choices">
+          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">A</span> Just the restaurant location</button>
+          <button class="choice" onclick="q1Answer(this,'correct')"><span class="choice-key">B</span> Restaurant + list of all undelivered orders {H1, H2, H3}</button>
+          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">C</span> Just the first house address</button>
+        </div>
+        <div class="feedback" id="q1-fb"></div>
+      </div>
+
+      <div class="insight" id="insight1" style="display:none;">
+        <div class="insight-title">💡 Key Insight — Initial State</div>
+        <p>The state must capture <strong>everything the AI agent needs to know</strong> to make decisions. Here: current location (restaurant) + the set of undelivered orders. Without the order list, the agent doesn't know what's left to do!</p>
+      </div>
+
+      <div id="next1" style="display:none;margin-top:16px;text-align:center;">
+        <button class="btn btn-pizza" onclick="goScene(2)">Next: What Can the Driver Do? →</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goScene(2)" style="font-size:11px;opacity:.5;">Skip →</button>
+  </div>
+</div>
+
+<!-- ══ SCENE 2: ACTIONS ══ -->
+<div class="scene" id="scene2">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">2</div>
+      <div class="scene-title">🚗 What Can the Driver Do?</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">🚗</div>
+        <div class="bubble-text">I'm at the restaurant. I need to <strong>choose my next move</strong>. What are my valid actions?</div>
+      </div>
+
+      <div class="map-area">
+        <canvas class="map-canvas" id="map2" width="600" height="180"></canvas>
+      </div>
+
+      <div class="question-wrap">
+        <div class="q-text">Select ALL valid actions for the delivery driver:</div>
+        <div class="choices" id="q2-choices" style="display:flex;flex-direction:column;gap:8px;">
+          <button class="multi-choice" onclick="q2Toggle(this,true)" data-val="drive1"><span class="checkbox"></span>🚗 Drive to House 1</button>
+          <button class="multi-choice" onclick="q2Toggle(this,true)" data-val="drive2"><span class="checkbox"></span>🚗 Drive to House 2</button>
+          <button class="multi-choice" onclick="q2Toggle(this,true)" data-val="drive3"><span class="checkbox"></span>🚗 Drive to House 3</button>
+          <button class="multi-choice" onclick="q2Toggle(this,false)" data-val="drone"><span class="checkbox"></span>🚁 Fly with a drone</button>
+          <button class="multi-choice" onclick="q2Toggle(this,false)" data-val="teleport"><span class="checkbox"></span>⚡ Teleport instantly</button>
+          <button class="multi-choice" onclick="q2Toggle(this,false)" data-val="call"><span class="checkbox"></span>📞 Call the customer to pick up</button>
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-check btn-full" id="q2-submit" onclick="q2Check()">✓ Check My Selection</button>
+        </div>
+        <div class="feedback" id="q2-fb"></div>
+      </div>
+
+      <div class="insight" id="insight2" style="display:none;">
+        <div class="insight-title">💡 Key Insight — Actions</div>
+        <p>Actions must be <strong>physically possible</strong> in the problem's world. The problem defines the rules — drones and teleportation might exist in a different problem, but not this one. <strong>3 valid actions</strong>: Drive to H1, Drive to H2, or Drive to H3.</p>
+      </div>
+
+      <div id="next2" style="display:none;margin-top:16px;text-align:center;">
+        <button class="btn btn-pizza" onclick="goScene(3)">Next: First Delivery! →</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goScene(3)" style="font-size:11px;opacity:.5;">Skip →</button>
+  </div>
+</div>
+
+<!-- ══ SCENE 3: TRANSITION ══ -->
+<div class="scene" id="scene3">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">3</div>
+      <div class="scene-title">🏠 First Delivery — State Changes!</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">🚗</div>
+        <div class="bubble-text">I chose to <strong>Drive to House 1</strong>. Delivered! Watch how the state changes...</div>
+      </div>
+
+      <div class="map-area">
+        <canvas class="map-canvas" id="map3" width="600" height="180"></canvas>
+      </div>
+
+      <div class="trans-visual">
+        <div class="trans-box"><span style="color:var(--text-muted);">BEFORE</span>
+location = Restaurant
+orders = {H1, H2, H3}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div class="trans-action">Drive to H1</div>
+          <div class="trans-arrow">→</div>
+          <div class="trans-action">Deliver H1</div>
+        </div>
+        <div class="trans-box" style="color:var(--green);"><span style="color:var(--text-muted);">AFTER</span>
+location = House1
+orders = {H2, H3}</div>
+      </div>
+
+      <div class="question-wrap">
+        <div class="q-text">What is the correct state AFTER driving to House 1 and delivering?</div>
+        <div class="choices" id="q3-choices">
+          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">A</span> (Restaurant, {H1, H2, H3}) — nothing changed</button>
+          <button class="choice" onclick="q3Answer(this,'correct')"><span class="choice-key">B</span> (House1, {H2, H3}) — moved + H1 removed ✓</button>
+          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">C</span> (House1, {H1, H2, H3}) — moved but order still there</button>
+        </div>
+        <div class="feedback" id="q3-fb"></div>
+      </div>
+
+      <div class="insight" id="insight3" style="display:none;">
+        <div class="insight-title">💡 Key Insight — Transition Model</div>
+        <p>The <strong>transition model</strong> tells us: given a state + action → what is the next state? After driving to H1 and delivering, two things change: <strong>location</strong> updates to H1, and <strong>H1 is removed</strong> from the pending orders. This is deterministic — always the same result!</p>
+      </div>
+
+      <div id="next3" style="display:none;margin-top:16px;text-align:center;">
+        <button class="btn btn-pizza" onclick="goScene(4)">Next: When Are We Done? →</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goScene(4)" style="font-size:11px;opacity:.5;">Skip →</button>
+  </div>
+</div>
+
+<!-- ══ SCENE 4: GOAL TEST ══ -->
+<div class="scene" id="scene4">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">4</div>
+      <div class="scene-title">🎯 All Pizzas Delivered!</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">🧑‍🍳</div>
+        <div class="bubble-text">All 3 houses received their pizza! <strong>Are we done?</strong> How does the AI know when to stop?</div>
+      </div>
+
+      <div class="map-area">
+        <canvas class="map-canvas" id="map4" width="600" height="180"></canvas>
+      </div>
+
+      <div class="state-box"><span class="state-comment">// Final state after all deliveries</span>
+location = House3
+orders   = {} <span class="state-comment">// empty!</span>
+
+<span class="state-comment">// Goal Test:</span>
+<span class="state-highlight">goal_test(state) = (orders == {})</span></div>
+
+      <div class="question-wrap">
+        <div class="q-text">When is the delivery problem SOLVED? (select the best answer)</div>
+        <div class="choices" id="q4-choices">
+          <button class="choice" onclick="q4Answer(this,'wrong')"><span class="choice-key">A</span> After delivering exactly 1 order</button>
+          <button class="choice" onclick="q4Answer(this,'correct')"><span class="choice-key">B</span> When all orders are delivered (orders set is empty)</button>
+          <button class="choice" onclick="q4Answer(this,'wrong')"><span class="choice-key">C</span> When the driver returns to the restaurant</button>
+          <button class="choice" onclick="q4Answer(this,'wrong')"><span class="choice-key">D</span> When the driver runs out of fuel</button>
+        </div>
+        <div class="feedback" id="q4-fb"></div>
+      </div>
+
+      <div class="celebration" id="cel4">
+        <div class="confetti">🎉🍕🎉</div>
+        <h3>All Pizzas Delivered!</h3>
+        <p>The goal test checks: <code style="background:var(--surface);padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;">orders == {}</code> — when this is true, the mission is complete!</p>
+      </div>
+
+      <div class="insight" id="insight4" style="display:none;">
+        <div class="insight-title">💡 Key Insight — Goal Test</div>
+        <p>The goal test is a <strong>simple check</strong> applied to any state. Here: is the orders set empty? Note that the driver's location doesn't matter — the goal is about completing all deliveries, not where you end up!</p>
+      </div>
+
+      <div id="next4" style="display:none;margin-top:16px;text-align:center;">
+        <button class="btn btn-pizza" onclick="goScene(5)">Next: What Did It Cost? →</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goScene(5)" style="font-size:11px;opacity:.5;">Skip →</button>
+  </div>
+</div>
+
+<!-- ══ SCENE 5: PATH COST ══ -->
+<div class="scene" id="scene5">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">5</div>
+      <div class="scene-title">📊 How Much Did It Cost?</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">📊</div>
+        <div class="bubble-text">The delivery is done — but <strong>was it efficient?</strong> How do we measure the quality of the solution?</div>
+      </div>
+
+      <div class="map-area">
+        <canvas class="map-canvas" id="map5" width="600" height="180"></canvas>
+      </div>
+
+      <div class="cost-grid">
+        <div class="cost-item" id="cost-dist">
+          <div class="cost-icon">📏</div>
+          <div class="cost-val">15 km</div>
+          <div class="cost-lbl">Distance</div>
+        </div>
+        <div class="cost-item" id="cost-time">
+          <div class="cost-icon">⏱️</div>
+          <div class="cost-val">45 min</div>
+          <div class="cost-lbl">Time</div>
+        </div>
+        <div class="cost-item" id="cost-fuel">
+          <div class="cost-icon">⛽</div>
+          <div class="cost-val">2L</div>
+          <div class="cost-lbl">Fuel</div>
+        </div>
+      </div>
+
+      <div class="question-wrap">
+        <div class="q-text">What is the Path Cost for this delivery problem?</div>
+        <div class="choices" id="q5-choices">
+          <div class="choices" style="display:flex;flex-direction:column;gap:8px;">
+            <button class="multi-choice" onclick="q5Toggle(this)" data-val="dist"><span class="checkbox"></span>📏 Distance (km)</button>
+            <button class="multi-choice" onclick="q5Toggle(this)" data-val="time"><span class="checkbox"></span>⏱️ Time (minutes)</button>
+            <button class="multi-choice" onclick="q5Toggle(this)" data-val="fuel"><span class="checkbox"></span>⛽ Fuel consumed</button>
+            <button class="multi-choice" onclick="q5Toggle(this)" data-val="all"><span class="checkbox"></span>✅ All of them — it depends on what matters!</button>
+          </div>
+          <div style="margin-top:14px;">
+            <button class="btn btn-check btn-full" id="q5-submit" onclick="q5Check()">✓ Check My Answer</button>
+          </div>
+        </div>
+        <div class="feedback" id="q5-fb"></div>
+      </div>
+
+      <div class="insight" id="insight5" style="display:none;">
+        <div class="insight-title">💡 Key Insight — Path Cost</div>
+        <p>The path cost function depends on <strong>what you're optimizing for</strong>. If the pizza company cares about speed → minimize time. If they care about fuel → minimize liters. AI search algorithms like <strong>Uniform Cost Search</strong> and <strong>A*</strong> find paths with minimum cost!</p>
+      </div>
+
+      <div id="next5" style="display:none;margin-top:16px;text-align:center;">
+        <button class="btn btn-pizza" onclick="goScene(6)">See Full Summary →</button>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;text-align:center;">
+    <button class="btn btn-ghost" onclick="goScene(6)" style="font-size:11px;opacity:.5;">Skip →</button>
+  </div>
+</div>
+
+<!-- ══ SCENE 6: SUMMARY ══ -->
+<div class="scene" id="scene6">
+  <div class="scene-card">
+    <div class="scene-header">
+      <div class="scene-num">6</div>
+      <div class="scene-title">📋 Complete Problem Formulation</div>
+    </div>
+    <div class="scene-body">
+      <div class="bubble">
+        <div class="bubble-avatar">🤖</div>
+        <div class="bubble-text">Let's put it all together! Here is the <strong>complete formal definition</strong> of the Pizza Delivery problem:</div>
+      </div>
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px;">
+        <table class="summary-table">
+          <tr><td>Initial State</td><td>(Restaurant, {House1, House2, House3})</td></tr>
+          <tr><td>Actions</td><td>Drive_to(h) for each h in pending orders</td></tr>
+          <tr><td>Transition</td><td>Drive_to(h) → (h, orders − {h})</td></tr>
+          <tr><td>Goal Test</td><td>orders == {} (all delivered)</td></tr>
+          <tr><td>Path Cost</td><td>Σ distance(each trip) or Σ time</td></tr>
+        </table>
+      </div>
+
+      <div class="state-box"><span class="state-comment">// Full problem definition</span>
+problem = {
+  initial : (Restaurant, {H1, H2, H3}),
+  actions : [Drive_to(H1), Drive_to(H2), Drive_to(H3)],
+  result  : Drive_to(h) → (h, orders − {h}),
+  goal    : orders == {},
+  cost    : total_distance
+}</div>
+
+      <div class="complete-card" style="margin-top:18px;">
+        <div style="font-size:56px;margin-bottom:14px;">🍕</div>
+        <h2>Story Complete!</h2>
+        <p>You've learned all 5 components of AI problem formulation through a real-world example</p>
+        <div class="badges">
+          <div class="badge">✓ Initial State</div>
+          <div class="badge">✓ Actions</div>
+          <div class="badge">✓ Transition Model</div>
+          <div class="badge">✓ Goal Test</div>
+          <div class="badge">✓ Path Cost</div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="location.reload()">↺ Replay Story</button>
+          <a href="index.html" class="btn btn-pizza" style="text-decoration:none;">← All Exercises</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MAP RENDERER ─────────────────────────────────────────
+const PLACES = {
+  restaurant: {x:.12, y:.45, label:'🍕 Restaurant', color:'#ff6b35'},
+  h1:         {x:.38, y:.22, label:'House 1', color:'#ef4444'},
+  h2:         {x:.60, y:.65, label:'House 2', color:'#ef4444'},
+  h3:         {x:.82, y:.30, label:'House 3', color:'#ef4444'},
+};
+
+function drawMap(id, opts={}) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600;
+  const H = canvas.offsetHeight || 180;
+  canvas.width = W; canvas.height = H;
+  ctx.clearRect(0,0,W,H);
+
+  // Background grid
+  ctx.strokeStyle = '#1c2030'; ctx.lineWidth = 1;
+  for (let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for (let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const {edges=[], visited=[], current=null, path=[]} = opts;
+
+  // Draw roads
+  edges.forEach(([a,b,isPath]) => {
+    const pa = PLACES[a], pb = PLACES[b];
+    ctx.beginPath();
+    ctx.moveTo(pa.x*W, pa.y*H);
+    ctx.lineTo(pb.x*W, pb.y*H);
+    ctx.strokeStyle = isPath ? '#22c55e' : '#252a3a';
+    ctx.lineWidth = isPath ? 3 : 2;
+    ctx.setLineDash(isPath ? [] : [6,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Distance label
+    if (!isPath) {
+      const mx=(pa.x+pb.x)/2*W, my=(pa.y+pb.y)/2*H;
+      const dx=Math.round(Math.sqrt(((pa.x-pb.x)*W)**2+((pa.y-pb.y)*H)**2)*0.06);
+      ctx.fillStyle='#3d4460';ctx.font='10px JetBrains Mono';ctx.textAlign='center';
+      ctx.fillText(dx+'km',mx,my-5);
+    }
+  });
+
+  // Draw places
+  Object.entries(PLACES).forEach(([key, p]) => {
+    const x=p.x*W, y=p.y*H;
+    const isVisited = visited.includes(key);
+    const isCurrent = current===key;
+    const r = key==='restaurant' ? 16 : 12;
+
+    // Glow for current
+    if (isCurrent) {
+      ctx.beginPath(); ctx.arc(x,y,r+8,0,Math.PI*2);
+      ctx.fillStyle = p.color+'30'; ctx.fill();
+    }
+
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle = isVisited ? '#22c55e' : (isCurrent ? p.color : '#1c2030');
+    ctx.fill();
+    ctx.strokeStyle = isCurrent ? '#fff' : (isVisited ? '#16a34a' : p.color);
+    ctx.lineWidth = isCurrent ? 3 : 2;
+    ctx.stroke();
+
+    // Icon
+    ctx.font = `${key==='restaurant'?16:13}px sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(key==='restaurant'?'🍕':(isVisited?'✅':'🏠'), x, y);
+
+    // Label
+    const yOff = y > H/2 ? -r-14 : r+14;
+    ctx.fillStyle='#7c85a8'; ctx.font='bold 10px Sora, sans-serif';
+    ctx.textBaseline='middle';
+    ctx.fillText(key==='restaurant'?'Restaurant':p.label, x, y+yOff);
+  });
+
+  // Car emoji for current non-restaurant
+  if (current && current !== 'restaurant') {
+    const p = PLACES[current];
+    ctx.font='18px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('🚗', p.x*W+20, p.y*H-20);
+  }
+}
+
+function initMaps() {
+  // Scene 1: all dashed roads, driver at restaurant
+  const edges1 = [
+    ['restaurant','h1',false],['restaurant','h2',false],['restaurant','h3',false],
+    ['h1','h2',false],['h2','h3',false]
+  ];
+  drawMap('map1', {edges:edges1, current:'restaurant'});
+  drawMap('map2', {edges:edges1, current:'restaurant'});
+  // Scene 3: drove to H1
+  const edges3 = [
+    ['restaurant','h1',true],['restaurant','h2',false],['restaurant','h3',false],
+    ['h1','h2',false],['h2','h3',false]
+  ];
+  drawMap('map3', {edges:edges3, current:'h1', visited:['h1']});
+  // Scene 4: all delivered
+  const edges4 = [
+    ['restaurant','h1',true],['h1','h2',true],['h2','h3',true],
+    ['restaurant','h2',false],['restaurant','h3',false]
+  ];
+  drawMap('map4', {edges:edges4, current:'h3', visited:['h1','h2','h3']});
+  // Scene 5: same as 4 with path drawn
+  drawMap('map5', {edges:edges4, current:'h3', visited:['h1','h2','h3']});
+}
+
+window.addEventListener('load', initMaps);
+window.addEventListener('resize', initMaps);
+
+// ── Q1: INITIAL STATE ─────────────────────────────────────
+function q1Answer(btn, result) {
+  document.querySelectorAll('#q1-choices .choice').forEach(b=>{b.disabled=true; b.classList.remove('correct','wrong');});
+  const fb = document.getElementById('q1-fb');
+  if (result==='correct') {
+    btn.classList.add('correct');
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">✅</span> <strong>Correct!</strong> The initial state must include both the starting location (restaurant) AND all pending orders {H1, H2, H3}. Both pieces are needed for the AI to plan.';
+    document.getElementById('insight1').style.display='block';
+    document.getElementById('state1-display').innerHTML = 
+      '<span class="state-comment">// Initial State</span>\nstate = (<span class="state-highlight">Restaurant</span>, {<span class="state-highlight">H1, H2, H3</span>})';
+    setTimeout(()=>document.getElementById('next1').style.display='block', 600);
+  } else {
+    btn.classList.add('wrong');
+    fb.className='feedback show wrong';
+    fb.innerHTML='<span class="fb-icon">❌</span> Not quite. Think about what info the driver needs to <strong>start planning the full route</strong> — just one location isn\'t enough!';
+    document.querySelectorAll('#q1-choices .choice').forEach(b=>b.disabled=false);
+  }
+}
+
+// ── Q2: ACTIONS (MULTI-SELECT) ────────────────────────────
+const q2Selected = new Set();
+function q2Toggle(btn, isValid) {
+  const val = btn.dataset.val;
+  if (q2Selected.has(val)) { q2Selected.delete(val); btn.classList.remove('selected'); btn.querySelector('.checkbox').textContent=''; }
+  else { q2Selected.add(val); btn.classList.add('selected'); btn.querySelector('.checkbox').textContent='✓'; }
+}
+function q2Check() {
+  const correct = new Set(['drive1','drive2','drive3']);
+  const allCorrect = [...correct].every(v=>q2Selected.has(v)) && [...q2Selected].every(v=>correct.has(v));
+  document.querySelectorAll('#q2-choices .multi-choice').forEach(btn => {
+    const val = btn.dataset.val;
+    const shouldBeChecked = correct.has(val);
+    const wasChecked = q2Selected.has(val);
+    btn.disabled = true;
+    if (shouldBeChecked) btn.classList.add('correct');
+    else if (wasChecked) btn.classList.add('wrong');
+    btn.querySelector('.checkbox').textContent = shouldBeChecked ? '✓' : (wasChecked ? '✗' : '');
+  });
+  const fb = document.getElementById('q2-fb');
+  document.getElementById('q2-submit').disabled = true;
+  if (allCorrect) {
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">✅</span> <strong>Perfect!</strong> The 3 valid actions are: Drive to H1, Drive to H2, Drive to H3. Drones/teleport/calls are not part of this problem\'s world!';
+    document.getElementById('insight2').style.display='block';
+    setTimeout(()=>document.getElementById('next2').style.display='block', 600);
+  } else {
+    fb.className='feedback show wrong';
+    fb.innerHTML='<span class="fb-icon">❌</span> Not quite. Actions must be <strong>physically possible</strong> given the problem rules. Try again!';
+    document.querySelectorAll('#q2-choices .multi-choice').forEach(b=>{b.disabled=false; b.classList.remove('correct','wrong','selected'); b.querySelector('.checkbox').textContent=q2Selected.has(b.dataset.val)?'✓':'';});
+    document.getElementById('q2-submit').disabled = false;
+  }
+}
+
+// ── Q3: TRANSITION ────────────────────────────────────────
+function q3Answer(btn, result) {
+  document.querySelectorAll('#q3-choices .choice').forEach(b=>{b.disabled=true;});
+  const fb = document.getElementById('q3-fb');
+  if (result==='correct') {
+    btn.classList.add('correct');
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">✅</span> <strong>Correct!</strong> After driving to House 1: location changes to H1, and H1 is removed from pending orders. Two things change simultaneously!';
+    document.getElementById('insight3').style.display='block';
+    setTimeout(()=>document.getElementById('next3').style.display='block', 600);
+  } else {
+    btn.classList.add('wrong');
+    fb.className='feedback show wrong';
+    fb.innerHTML='<span class="fb-icon">❌</span> Not quite. When you drive to H1 and deliver, both the <strong>location</strong> AND the <strong>orders set</strong> must update!';
+    document.querySelectorAll('#q3-choices .choice').forEach(b=>b.disabled=false);
+  }
+}
+
+// ── Q4: GOAL TEST ─────────────────────────────────────────
+function q4Answer(btn, result) {
+  document.querySelectorAll('#q4-choices .choice').forEach(b=>{b.disabled=true;});
+  const fb = document.getElementById('q4-fb');
+  if (result==='correct') {
+    btn.classList.add('correct');
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">✅</span> <strong>Correct!</strong> The goal is achieved when <code style="background:var(--surface);padding:1px 5px;border-radius:4px;font-family:JetBrains Mono,monospace;font-size:11px;">orders == {}</code>. The final location doesn\'t matter — only that all deliveries are done!';
+    document.getElementById('cel4').classList.add('show');
+    document.getElementById('insight4').style.display='block';
+    setTimeout(()=>document.getElementById('next4').style.display='block', 800);
+  } else {
+    btn.classList.add('wrong');
+    fb.className='feedback show wrong';
+    fb.innerHTML='<span class="fb-icon">❌</span> Think about <strong>what the mission is</strong> — delivering all pizzas. Not partial delivery, not returning home!';
+    document.querySelectorAll('#q4-choices .choice').forEach(b=>b.disabled=false);
+  }
+}
+
+// ── Q5: PATH COST (MULTI) ─────────────────────────────────
+const q5Selected = new Set();
+function q5Toggle(btn) {
+  const val = btn.dataset.val;
+  if (q5Selected.has(val)) { q5Selected.delete(val); btn.classList.remove('selected'); btn.querySelector('.checkbox').textContent=''; }
+  else { q5Selected.add(val); btn.classList.add('selected'); btn.querySelector('.checkbox').textContent='✓'; }
+}
+function q5Check() {
+  // Correct: selecting 'all' OR selecting all three individually
+  const hasAll = q5Selected.has('all');
+  const has3 = q5Selected.has('dist') && q5Selected.has('time') && q5Selected.has('fuel');
+  const correct = hasAll || has3;
+  document.querySelectorAll('#q5-choices .multi-choice').forEach(btn=>{
+    btn.disabled=true;
+    if (['dist','time','fuel','all'].includes(btn.dataset.val)) {
+      btn.classList.add('correct');
+      btn.querySelector('.checkbox').textContent='✓';
+    }
+  });
+  document.getElementById('q5-submit').disabled=true;
+  const fb = document.getElementById('q5-fb');
+  if (correct) {
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">✅</span> <strong>Exactly!</strong> Path cost depends on the goal — minimize distance for efficiency, time for speed, fuel for cost savings. The designer chooses!';
+  } else {
+    fb.className='feedback show correct';
+    fb.innerHTML='<span class="fb-icon">💡</span> <strong>All are valid!</strong> Path cost is flexible — it depends on what you\'re optimizing for in the problem!';
+  }
+  ['cost-dist','cost-time','cost-fuel'].forEach(id=>{
+    document.getElementById(id)?.classList.add('selected');
+  });
+  document.getElementById('insight5').style.display='block';
+  setTimeout(()=>document.getElementById('next5').style.display='block', 600);
+}
+
+// ── SCENE NAVIGATION ─────────────────────────────────────
+function goScene(n) {
+  document.querySelectorAll('.scene').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`scene${n}`)?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  updateProgress(n);
+  // Init maps for scenes that need it
+  setTimeout(initMaps, 100);
+}
+
+function updateProgress(active) {
+  for (let i=1;i<=6;i++) {
+    const dot=document.getElementById(`pd${i}`), lbl=document.getElementById(`pl${i}`), line=document.getElementById(`pln${i}`);
+    dot.className='prog-dot'; lbl.className='prog-label'; if(line) line.className='prog-line';
+    if (i < active) { dot.classList.add('done'); dot.textContent='✓'; lbl.classList.add('done'); if(line) line.classList.add('done'); }
+    else if (i===active) { dot.classList.add('active'); dot.textContent=i; lbl.classList.add('active'); }
+    else { dot.textContent=i; }
+  }
+}
+</script>
+</body>
+</html>
