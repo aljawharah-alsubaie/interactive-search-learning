@@ -667,6 +667,54 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: var(--surface); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── RESPONSIVE FIXES ── */
+  @media(max-width:768px){
+    nav{padding:12px 16px;}
+    nav .nav-badge:last-child{display:none;}
+    .hero{padding:36px 16px 24px;}
+    .hero p{font-size:14px;}
+    .steps-bar{padding:16px 12px;overflow-x:auto;}
+    .step-label, .sl{font-size:10px;}
+    .section{padding:0 16px 60px;}
+    .card{padding:16px;}
+    .card-sm{padding:12px;}
+    /* Fix two-column layouts */
+    .map-layout, .vw-layout, .hanoi-layout, .maze-layout, .tsp-layout{
+      grid-template-columns:1fr !important;
+    }
+    /* Fix state space grid overflow */
+    .states-grid{grid-template-columns:repeat(2,1fr);}
+    /* Fix score breakdown */
+    .score-breakdown, .sbd{grid-template-columns:repeat(3,1fr);}
+    /* Fix canvas overflow */
+    #tsp-canvas{width:100% !important;height:auto !important;}
+    #maze-canvas{width:100% !important;height:auto !important;}
+    #romania-svg, #romania-svg-2{height:320px;}
+    /* Fix hanoi pegs */
+    .pegs-row{gap:0;overflow-x:auto;}
+    .disk{font-size:10px;}
+    /* Fix action grid */
+    .action-grid{grid-template-columns:repeat(3,1fr);}
+    /* Fix dpad */
+    .dpad{grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);}
+    .dpad-btn{width:40px;height:40px;font-size:16px;}
+    /* Fix 3-col compare grids */
+    #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
+    #from-state-picker{grid-template-columns:repeat(4,1fr);}
+    /* Hero gradient fix for mobile */
+    .hero-tag{font-size:10px;padding:3px 10px;}
+    /* Formulation */
+    .form-components, #fcomps{gap:12px;}
+  }
+  @media(max-width:480px){
+    .hero h1{font-size:22px;}
+    .section-title, .sec-title{font-size:18px;}
+    .score-big, .score-big{font-size:52px;}
+    .states-grid{grid-template-columns:repeat(2,1fr);}
+    #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
+  }
+
 </style>
 </head>
 <body>

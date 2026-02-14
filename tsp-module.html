@@ -8,11 +8,11 @@
 <style>
 :root{--bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3352;--accent:#34d399;--accent2:#6c63ff;--success:#10b981;--danger:#ef4444;--warn:#f59e0b;--text:#e8eaf6;--text-dim:#8b90b8;--text-muted:#4a5080;}
 *{margin:0;padding:0;box-sizing:border-box;}button{color:inherit;font-family:inherit;}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden;}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}nav a:hover{opacity:.7;}
 .nav-badge{background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:20px;font-size:12px;color:var(--text-muted);}
-.hero{text-align:center;padding:50px 32px 32px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(52,211,153,.1) 0%,transparent 70%);}
+.hero{text-align:center;padding:32px 24px 24px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(52,211,153,.1) 0%,transparent 70%);}
 .hero-tag{display:inline-block;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.4);color:var(--accent);padding:4px 14px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:16px;}
 .hero h1{font-size:clamp(24px,4vw,44px);font-weight:700;background:linear-gradient(135deg,#fff 40%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px;}
 .hero p{color:var(--text-dim);font-size:15px;max-width:520px;margin:0 auto;}
@@ -30,7 +30,7 @@ nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}n
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 .sec-title{font-size:22px;font-weight:700;margin-bottom:6px;}
 .sec-sub{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;overflow:hidden;}
 .card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;}
 .code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#34d399;white-space:pre;line-height:1.7;overflow-x:auto;}
 .code-comment{color:var(--text-muted);}
@@ -106,6 +106,54 @@ nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}n
 .btn-g{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border);}.btn-g:hover{background:var(--border);color:var(--text);}
 .btn-f{width:100%;justify-content:center;}
 ::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+  /* ── RESPONSIVE FIXES ── */
+  @media(max-width:768px){
+    nav{padding:12px 16px;}
+    nav .nav-badge:last-child{display:none;}
+    .hero{padding:36px 16px 24px;}
+    .hero p{font-size:14px;}
+    .steps-bar{padding:16px 12px;overflow-x:auto;}
+    .step-label, .sl{font-size:10px;}
+    .section{padding:0 16px 60px;}
+    .card{padding:16px;}
+    .card-sm{padding:12px;}
+    /* Fix two-column layouts */
+    .map-layout, .vw-layout, .hanoi-layout, .maze-layout, .tsp-layout{
+      grid-template-columns:1fr !important;
+    }
+    /* Fix state space grid overflow */
+    .states-grid{grid-template-columns:repeat(2,1fr);}
+    /* Fix score breakdown */
+    .score-breakdown, .sbd{grid-template-columns:repeat(3,1fr);}
+    /* Fix canvas overflow */
+    #tsp-canvas{width:100% !important;height:auto !important;}
+    #maze-canvas{width:100% !important;height:auto !important;}
+    #romania-svg, #romania-svg-2{height:320px;}
+    /* Fix hanoi pegs */
+    .pegs-row{gap:0;overflow-x:auto;}
+    .disk{font-size:10px;}
+    /* Fix action grid */
+    .action-grid{grid-template-columns:repeat(3,1fr);}
+    /* Fix dpad */
+    .dpad{grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);}
+    .dpad-btn{width:40px;height:40px;font-size:16px;}
+    /* Fix 3-col compare grids */
+    #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
+    #from-state-picker{grid-template-columns:repeat(4,1fr);}
+    /* Hero gradient fix for mobile */
+    .hero-tag{font-size:10px;padding:3px 10px;}
+    /* Formulation */
+    .form-components, #fcomps{gap:12px;}
+  }
+  @media(max-width:480px){
+    .hero h1{font-size:22px;}
+    .section-title, .sec-title{font-size:18px;}
+    .score-big, .score-big{font-size:52px;}
+    .states-grid{grid-template-columns:repeat(2,1fr);}
+    #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
+  }
+
 </style>
 </head>
 <body>
@@ -135,7 +183,7 @@ nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}n
   <div class="card">
     <div class="tsp-layout">
       <div>
-        <canvas id="tsp-canvas" width="460" height="360"></canvas>
+        <canvas id="tsp-canvas" width="460" height="360" style="max-width:100%;"></canvas>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-g" onclick="tsp.reset()">🔄 Reset Tour</button>
           <span style="font-size:13px;color:var(--text-muted);" id="tsp-hint">Click a city to start your tour</span>
@@ -457,8 +505,8 @@ const tsp = (() => {
       const sy = canvas.height / rect.height;
       const mx = (e.clientX - rect.left) * sx;
       const my = (e.clientY - rect.top) * sy;
-      CITIES.forEach((c, i) => {
-        if (Math.sqrt((mx-c.x)**2+(my-c.y)**2) < 20) clickCity(i);
+      CITIES.forEach((city, i) => {
+        if (Math.sqrt((mx-city.x)**2+(my-city.y)**2) < 22) clickCity(i);
       });
     };
   }
