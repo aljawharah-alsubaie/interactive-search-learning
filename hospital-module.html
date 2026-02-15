@@ -252,7 +252,7 @@ nav a:hover{opacity:.7;}
 <!-- ══ SCENE 1: STATE ══ -->
 <div class="scene active" id="scene1">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">1</div><div class="scene-title">🚨 Emergency! Patient Arrives</div></div>
+    <div class="scene-hdr"><div class="scene-num">1</div><div class="scene-title">🚨 Scene 1: What Is the State?</div></div>
     <div class="scene-body">
       <div class="alert-banner">
         <div class="alert-icon">🚨</div>
@@ -260,7 +260,7 @@ nav a:hover{opacity:.7;}
       </div>
 
       <div class="bubble"><div class="bubble-avatar">👨‍⚕️</div>
-        <div class="bubble-text">This is more complex than delivering pizza. The state has to capture <strong class="hl-blue">multiple variables</strong> at once — not just location!</div>
+        <div class="bubble-text">The state must capture <strong class="hl-blue">every variable</strong> that affects the agent's decisions — not just location.</div>
       </div>
 
       <div class="hospital-map"><canvas class="map-canvas" id="map1" width="700" height="200"></canvas></div>
@@ -269,22 +269,22 @@ nav a:hover{opacity:.7;}
 state = ???</div>
 
       <div class="qwrap">
-        <div class="qt">Which state representation is complete enough for the AI to plan?</div>
+        <div class="qt">What does each state represent in this problem?</div>
         <div class="choices" id="q1c">
-          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">A</span><div>Just the patient's current location (Entrance)</div></button>
-          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">B</span><div>Location + patient condition (Stable / Critical)<div class="choice-sub">Ignores elevator and room availability</div></div></button>
-          <button class="choice" onclick="a1(this,'correct')"><span class="ck">C</span><div>Location + condition + elevator status + room availability<div class="choice-sub">All constraints that affect valid actions</div></div></button>
-          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">D</span><div>Location + all staff positions + all equipment status<div class="choice-sub">Too much — irrelevant to this problem</div></div></button>
+          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">A</span><div>The patient's current location only</div></button>
+          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">B</span><div>Location + patient condition (Stable/Critical)</div></button>
+          <button class="choice" onclick="a1(this,'correct')"><span class="ck">C</span><div>Location + condition + elevator status + room availability</div></button>
+          <button class="choice" onclick="a1(this,'wrong')"><span class="ck">D</span><div>Location + all staff and equipment status (everything in the hospital)</div></button>
         </div>
         <div class="feedback" id="fb1"></div>
       </div>
 
       <div class="insight" id="ins1" style="display:none;">
-        <div class="insight-t">💡 Why This Is Harder Than Pizza</div>
-        <p>In pizza delivery, state = (location, orders). Here the state needs to include <strong>environmental constraints</strong> that directly affect which actions are valid. A broken elevator changes what moves are possible. A full ICU changes what the goal means. The state must capture <strong>everything that can change the agent's options.</strong></p>
+        <div class="insight-t">💡 State Representation</div>
+        <p>The state must include <strong>everything that affects which actions are available</strong>. A broken elevator removes an action. A full ICU changes the goal condition. Each variable that changes the agent's options must be in the state.</p>
       </div>
 
-      <div id="next1"><button class="btn btn-red" onclick="goScene(2)">Next: What Actions Are Available? →</button></div>
+      <div id="next1"><button class="btn btn-red" onclick="goScene(2)">Next: Actions →</button></div>
     </div>
   </div>
   <div style="margin-top:10px;text-align:center;"><button class="btn btn-ghost" onclick="goScene(2)" style="font-size:11px;opacity:.5;">Skip →</button></div>
@@ -293,10 +293,10 @@ state = ???</div>
 <!-- ══ SCENE 2: ACTIONS ══ -->
 <div class="scene" id="scene2">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">2</div><div class="scene-title">🏃 Which Routes Can the Team Take?</div></div>
+    <div class="scene-hdr"><div class="scene-num">2</div><div class="scene-title">🚶 Scene 2: Which Actions Are Valid?</div></div>
     <div class="scene-body">
       <div class="bubble"><div class="bubble-avatar">🚑</div>
-        <div class="bubble-text">From the Entrance, the team has multiple paths. But <strong>not all actions are valid</strong> — some depend on the current state of the hospital.</div>
+        <div class="bubble-text">Not all routes are available. Each constraint in the state <strong>removes certain actions</strong>.</div>
       </div>
 
       <div class="hospital-map"><canvas class="map-canvas" id="map2" width="700" height="200"></canvas></div>
@@ -309,7 +309,7 @@ state = ???</div>
       </div>
 
       <div class="qwrap">
-        <div class="qt">Patient is CRITICAL. From Entrance, which actions are currently valid?</div>
+        <div class="qt">Patient condition: CRITICAL. Which actions are valid from the Entrance? (Select all that apply)</div>
         <div class="choices" id="q2c" style="display:flex;flex-direction:column;gap:7px;">
           <button class="mchoice" onclick="m2tog(this,true)" data-v="a"><span class="mbox"></span>🛗 Take Elevator A to Floor 2</button>
           <button class="mchoice" onclick="m2tog(this,false)" data-v="b"><span class="mbox"></span>🛗 Take Elevator B to Floor 2 <span style="color:var(--text-muted);font-size:11px;margin-left:6px;">(maintenance)</span></button>
@@ -322,11 +322,11 @@ state = ???</div>
       </div>
 
       <div class="insight" id="ins2" style="display:none;">
-        <div class="insight-t">💡 State-Dependent Actions</div>
+        <div class="insight-t">💡 Actions</div>
         <p>In pizza delivery, actions were always the same (Drive to H1/H2/H3). Here, <strong>valid actions change based on the current state</strong>. If the elevator is broken, that action disappears. If the patient becomes stable, stairs unlock. This is called a <strong>state-dependent action space</strong> — much more realistic!</p>
       </div>
 
-      <div id="next2"><button class="btn btn-red" onclick="goScene(3)">Next: Watch the State Change →</button></div>
+      <div id="next2"><button class="btn btn-red" onclick="goScene(3)">Next: Transition Model →</button></div>
     </div>
   </div>
   <div style="margin-top:10px;text-align:center;"><button class="btn btn-ghost" onclick="goScene(3)" style="font-size:11px;opacity:.5;">Skip →</button></div>
@@ -335,10 +335,10 @@ state = ???</div>
 <!-- ══ SCENE 3: TRANSITION ══ -->
 <div class="scene" id="scene3">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">3</div><div class="scene-title">🔄 One Action — Multiple Things Change</div></div>
+    <div class="scene-hdr"><div class="scene-num">3</div><div class="scene-title">🔄 Scene 3: The Transition Model</div></div>
     <div class="scene-body">
       <div class="bubble"><div class="bubble-avatar">👨‍⚕️</div>
-        <div class="bubble-text">Team moved the patient through <strong class="hl-blue">Elevator A → Floor 2</strong>. Watch what changes in the state. It's not just location this time!</div>
+        <div class="bubble-text">Action: <strong class="hl-blue">Take Elevator A to Floor 2</strong>. Watch which variables change in the state.</div>
       </div>
 
       <div class="hospital-map"><canvas class="map-canvas" id="map3" width="700" height="200"></canvas></div>
@@ -366,7 +366,7 @@ time     = 3 min</div>
       </div>
 
       <div class="qwrap">
-        <div class="qt">What changed in the state after taking Elevator A to Floor 2?</div>
+        <div class="qt">The transition model defines the result of an action. What changed after taking Elevator A?</div>
         <div class="choices" id="q3c">
           <button class="choice" onclick="a3(this,'wrong')"><span class="ck">A</span>Only the location changed</button>
           <button class="choice" onclick="a3(this,'correct')"><span class="ck">B</span><div>Location + floor + time all changed<div class="choice-sub">3 variables updated simultaneously</div></div></button>
@@ -377,11 +377,11 @@ time     = 3 min</div>
       </div>
 
       <div class="insight" id="ins3" style="display:none;">
-        <div class="insight-t">💡 Multi-Variable Transitions</div>
+        <div class="insight-t">💡 Transition Model</div>
         <p>Pizza: one action changed 2 things (location + order removed). Here: one action changes <strong>3+ things</strong> (location, floor, time elapsed). The transition model must specify <strong>exactly what changes and what stays the same</strong>. And some changes cascade — reaching a triage room might change the patient's condition from Critical to Stable, which then unlocks new actions!</p>
       </div>
 
-      <div id="next3"><button class="btn btn-red" onclick="goScene(4)">Next: When Is the Patient Safe? →</button></div>
+      <div id="next3"><button class="btn btn-red" onclick="goScene(4)">Next: Goal Test →</button></div>
     </div>
   </div>
   <div style="margin-top:10px;text-align:center;"><button class="btn btn-ghost" onclick="goScene(4)" style="font-size:11px;opacity:.5;">Skip →</button></div>
@@ -390,16 +390,16 @@ time     = 3 min</div>
 <!-- ══ SCENE 4: GOAL TEST ══ -->
 <div class="scene" id="scene4">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">4</div><div class="scene-title">🎯 What Does "Mission Accomplished" Mean?</div></div>
+    <div class="scene-hdr"><div class="scene-num">4</div><div class="scene-title">🎯 Scene 4: The Goal Test</div></div>
     <div class="scene-body">
       <div class="bubble"><div class="bubble-avatar">🏥</div>
-        <div class="bubble-text">In pizza delivery the goal was simple: <span class="hl-green">orders == {}</span>. Here the goal is <strong>more nuanced</strong> — it's not just about reaching a room!</div>
+        <div class="bubble-text">In pizza delivery, goal = one condition. Here the goal requires <strong>three conditions</strong> to be true at once.</div>
       </div>
 
       <div class="hospital-map"><canvas class="map-canvas" id="map4" width="700" height="200"></canvas></div>
 
       <div class="qwrap">
-        <div class="qt">Which condition truly satisfies the goal for this emergency?</div>
+        <div class="qt">Which of the following correctly describes the goal test?</div>
         <div class="choices" id="q4c">
           <button class="choice" onclick="a4(this,'wrong')"><span class="ck">A</span>Patient reaches any ICU room</button>
           <button class="choice" onclick="a4(this,'wrong')"><span class="ck">B</span>Patient reaches Cardiac ICU within 30 min</button>
@@ -417,11 +417,11 @@ time     = 3 min</div>
       </div>
 
       <div class="insight" id="ins4" style="display:none;">
-        <div class="insight-t">💡 Compound Goal Tests</div>
+        <div class="insight-t">💡 Goal Test</div>
         <p>Pizza goal: one condition. ER goal: <strong>three conditions must ALL be true</strong>. This is called a <strong>conjunctive goal</strong>. Reaching Cardiac ICU after 45 minutes = FAIL. Reaching it in 20 min but no room = FAIL. AI search algorithms must evaluate ALL conditions at every candidate state, not just one.</p>
       </div>
 
-      <div id="next4"><button class="btn btn-red" onclick="goScene(5)">Next: What's the Real Cost? →</button></div>
+      <div id="next4"><button class="btn btn-red" onclick="goScene(5)">Next: Path Cost →</button></div>
     </div>
   </div>
   <div style="margin-top:10px;text-align:center;"><button class="btn btn-ghost" onclick="goScene(5)" style="font-size:11px;opacity:.5;">Skip →</button></div>
@@ -430,10 +430,10 @@ time     = 3 min</div>
 <!-- ══ SCENE 5: PATH COST ══ -->
 <div class="scene" id="scene5">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">5</div><div class="scene-title">⏱️ Two Paths — Which Is Better?</div></div>
+    <div class="scene-hdr"><div class="scene-num">5</div><div class="scene-title">📊 Scene 5: Path Cost</div></div>
     <div class="scene-body">
       <div class="bubble"><div class="bubble-avatar">📊</div>
-        <div class="bubble-text">There are <strong>two possible routes</strong> to the Cardiac ICU. The cost function decides which one the AI prefers. But here — unlike pizza — the cost function has <strong>life-or-death consequences.</strong></div>
+        <div class="bubble-text">Two routes exist. The <strong>cost function</strong> determines which one the AI chooses.</div>
       </div>
 
       <div class="hospital-map"><canvas class="map-canvas" id="map5" width="700" height="200"></canvas></div>
@@ -457,17 +457,17 @@ time     = 3 min</div>
       </table>
 
       <div class="qwrap">
-        <div class="qt">If the hospital's cost function is: <code style="background:var(--surface);padding:2px 7px;border-radius:5px;font-size:11px;">cost = time × risk_factor</code> — which path is optimal?</div>
+        <div class="qt">What is the most suitable path cost for this problem?</div>
         <div class="choices" id="q5c">
-          <button class="choice" onclick="a5(this,'correct')"><span class="ck">A</span><div>Route A — faster time, same risk = lower total cost<div class="choice-sub">18 × 1.0 = 18 vs 24 × 1.0 = 24</div></div></button>
+          <button class="choice" onclick="a5(this,'wrong')"><span class="ck">A</span><div>Total time taken to reach the Cardiac ICU</div></button>
           <button class="choice" onclick="a5(this,'wrong')"><span class="ck">B</span>Route B — less congestion means safer for the patient</button>
-          <button class="choice" onclick="a5(this,'neutral')"><span class="ck">C</span><div>Depends — if we add a congestion penalty, answer could change<div class="choice-sub">This is also a valid insight!</div></div></button>
+          <button class="choice" onclick="a5(this,'correct')"><span class="ck">C</span><div>Time × risk factor for each step (weighted cost)</div></button>
         </div>
         <div class="feedback" id="fb5"></div>
       </div>
 
       <div class="insight" id="ins5" style="display:none;">
-        <div class="insight-t">💡 Weighted Cost Functions</div>
+        <div class="insight-t">💡 Path Cost</div>
         <p>In the ER, cost functions can be <strong>multi-dimensional</strong>: time, risk, resource usage, staff availability. Changing the weights changes the optimal path. This is why real hospital AI systems use <strong>A* with admissible heuristics</strong> — they must guarantee finding the minimum-cost path within the time constraint. The cost function design is often the hardest part of the problem formulation!</p>
       </div>
 
@@ -480,7 +480,7 @@ time     = 3 min</div>
 <!-- ══ SCENE 6: SUMMARY ══ -->
 <div class="scene" id="scene6">
   <div class="scene-card">
-    <div class="scene-hdr"><div class="scene-num">6</div><div class="scene-title">📋 Full Formulation + Comparison</div></div>
+    <div class="scene-hdr"><div class="scene-num">6</div><div class="scene-title">📋 Scene 6: Full Problem Formulation</div></div>
     <div class="scene-body">
 
       <div class="summary-grid">
@@ -737,7 +737,7 @@ function a4(btn,r){
   if(r==='correct'){
     btn.classList.add('correct');
     fb.className='feedback show correct';
-    fb.innerHTML='<div class="fb-t">✅ Correct!</div>All three conditions must hold simultaneously. Reaching Cardiac ICU but with no available bed — not a solution. Reaching it in 35 minutes — not a solution. The goal is a conjunction of constraints.';
+    fb.innerHTML='<div class="fb-t">✅ Correct!</div>All three conditions must be true at the same time. Reaching the right room but too late = fail. Right room, right time, but full = fail. This is called a <strong>conjunctive goal</strong>.';
     document.getElementById('goal-detail').style.display='block';
     document.getElementById('ins4').style.display='block';
     setTimeout(()=>document.getElementById('next4').style.display='block',600);
@@ -756,13 +756,10 @@ function a5(btn,r){
   btn.classList.add(r==='correct'?'correct':r==='neutral'?'neutral':'wrong');
   if(r==='correct'){
     fb.className='feedback show correct';
-    fb.innerHTML='<div class="fb-t">✅ Correct with the given cost function!</div>With cost = time × risk_factor, and both routes having the same risk (1.0), Route A wins at 18 vs 24. But change the formula and the answer changes.';
-  } else if(r==='neutral'){
-    fb.className='feedback show correct';
-    fb.innerHTML='<div class="fb-t">💡 Sharp thinking!</div>This is a valid insight — the "optimal" path depends entirely on how you define the cost function. This is the key design challenge in real AI systems.';
+    fb.innerHTML='<div class="fb-t">✅ Correct!</div>The cost function is <strong>time × risk_factor</strong>. This captures both speed and patient safety. Pure distance or time alone misses the risk dimension in medical emergencies.';
   } else {
     fb.className='feedback show wrong';
-    fb.innerHTML='<div class="fb-t">❌ With this cost function...</div>With cost = time × risk (and equal risk), Route A is strictly better. But your instinct about congestion is valid — if we add a congestion weight, Route B could win.';
+    fb.innerHTML='<div class="fb-t">❌ Not quite.</div>In a medical emergency, cost must reflect both <strong>time</strong> and <strong>risk</strong>. Time alone ignores danger; distance alone ignores urgency. The weighted formula captures both.';
   }
   document.getElementById('ins5').style.display='block';
   setTimeout(()=>document.getElementById('next5').style.display='block',600);

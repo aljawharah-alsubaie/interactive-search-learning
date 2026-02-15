@@ -207,12 +207,12 @@ nav a:hover{opacity:.7;}
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">1</div>
-      <div class="scene-title">🎬 The Driver Starts His Shift</div>
+      <div class="scene-title">🎬 Scene 1: The Driver Has 3 Orders</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">🧑‍🍳</div>
-        <div class="bubble-text">I've got <strong>3 pizza orders</strong> ready! I need to deliver all of them. Let me check the map...</div>
+        <div class="bubble-text">I have <strong>3 pizza orders</strong> to deliver. The map shows the restaurant and 3 houses.</div>
       </div>
 
       <div class="map-area">
@@ -223,22 +223,23 @@ nav a:hover{opacity:.7;}
 state = ???</div>
 
       <div class="question-wrap">
-        <div class="q-text">What information fully describes the driver's starting situation?</div>
+        <div class="q-text">What does the initial state represent in this problem?</div>
         <div class="choices" id="q1-choices">
-          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">A</span> Just the restaurant location</button>
-          <button class="choice" onclick="q1Answer(this,'correct')"><span class="choice-key">B</span> Restaurant + list of all undelivered orders {H1, H2, H3}</button>
-          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">C</span> Just the first house address</button>
+          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">A</span> Only the restaurant location</button>
+          <button class="choice" onclick="q1Answer(this,'correct')"><span class="choice-key">B</span> Current location + set of undelivered orders {H1, H2, H3}</button>
+          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">C</span> The address of the first house only</button>
+          <button class="choice" onclick="q1Answer(this,'wrong')"><span class="choice-key">D</span> The total number of orders</button>
         </div>
         <div class="feedback" id="q1-fb"></div>
       </div>
 
       <div class="insight" id="insight1" style="display:none;">
-        <div class="insight-title">💡 Key Insight — Initial State</div>
-        <p>The state must capture <strong>everything the AI agent needs to know</strong> to make decisions. Here: current location (restaurant) + the set of undelivered orders. Without the order list, the agent doesn't know what's left to do!</p>
+        <div class="insight-title">💡 Initial State</div>
+        <p>The state must include <strong>everything needed to decide the next move</strong>: where the driver is + what orders remain. Missing either piece means the agent can't plan.</p>
       </div>
 
       <div id="next1" style="display:none;margin-top:16px;text-align:center;">
-        <button class="btn btn-pizza" onclick="goScene(2)">Next: What Can the Driver Do? →</button>
+        <button class="btn btn-pizza" onclick="goScene(2)">Next: Actions →</button>
       </div>
     </div>
   </div>
@@ -252,12 +253,12 @@ state = ???</div>
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">2</div>
-      <div class="scene-title">🚗 What Can the Driver Do?</div>
+      <div class="scene-title">🚗 Scene 2: What Moves Are Valid?</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">🚗</div>
-        <div class="bubble-text">I'm at the restaurant. I need to <strong>choose my next move</strong>. What are my valid actions?</div>
+        <div class="bubble-text">I'm at the restaurant. Which moves can I actually make?</div>
       </div>
 
       <div class="map-area">
@@ -265,7 +266,7 @@ state = ???</div>
       </div>
 
       <div class="question-wrap">
-        <div class="q-text">Select ALL valid actions for the delivery driver:</div>
+        <div class="q-text">Which of the following are valid actions in this problem? (Select all that apply)</div>
         <div class="choices" id="q2-choices" style="display:flex;flex-direction:column;gap:8px;">
           <button class="multi-choice" onclick="q2Toggle(this,true)" data-val="drive1"><span class="checkbox"></span>🚗 Drive to House 1</button>
           <button class="multi-choice" onclick="q2Toggle(this,true)" data-val="drive2"><span class="checkbox"></span>🚗 Drive to House 2</button>
@@ -281,12 +282,12 @@ state = ???</div>
       </div>
 
       <div class="insight" id="insight2" style="display:none;">
-        <div class="insight-title">💡 Key Insight — Actions</div>
-        <p>Actions must be <strong>physically possible</strong> in the problem's world. The problem defines the rules — drones and teleportation might exist in a different problem, but not this one. <strong>3 valid actions</strong>: Drive to H1, Drive to H2, or Drive to H3.</p>
+        <div class="insight-title">💡 Actions</div>
+        <p>Actions must be <strong>defined by the problem rules</strong>. Here only driving is allowed — no drones, no teleportation. Valid actions: Drive(H1), Drive(H2), Drive(H3).</p>
       </div>
 
       <div id="next2" style="display:none;margin-top:16px;text-align:center;">
-        <button class="btn btn-pizza" onclick="goScene(3)">Next: First Delivery! →</button>
+        <button class="btn btn-pizza" onclick="goScene(3)">Next: Transition Model →</button>
       </div>
     </div>
   </div>
@@ -300,12 +301,12 @@ state = ???</div>
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">3</div>
-      <div class="scene-title">🏠 First Delivery — State Changes!</div>
+      <div class="scene-title">🏠 Scene 3: After the First Delivery</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">🚗</div>
-        <div class="bubble-text">I chose to <strong>Drive to House 1</strong>. Delivered! Watch how the state changes...</div>
+        <div class="bubble-text">Action taken: <strong>Drive to House 1</strong> and deliver. Watch what changes in the state.</div>
       </div>
 
       <div class="map-area">
@@ -327,22 +328,23 @@ orders = {H2, H3}</div>
       </div>
 
       <div class="question-wrap">
-        <div class="q-text">What is the correct state AFTER driving to House 1 and delivering?</div>
+        <div class="q-text">The transition model defines the result of an action. What is the new state after Drive(H1)?</div>
         <div class="choices" id="q3-choices">
-          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">A</span> (Restaurant, {H1, H2, H3}) — nothing changed</button>
-          <button class="choice" onclick="q3Answer(this,'correct')"><span class="choice-key">B</span> (House1, {H2, H3}) — moved + H1 removed ✓</button>
-          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">C</span> (House1, {H1, H2, H3}) — moved but order still there</button>
+          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">A</span> (Restaurant, {H1, H2, H3}) — state did not change</button>
+          <button class="choice" onclick="q3Answer(this,'correct')"><span class="choice-key">B</span> (House1, {H2, H3}) — location updated, H1 removed</button>
+          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">C</span> (House1, {H1, H2, H3}) — moved but H1 still pending</button>
+          <button class="choice" onclick="q3Answer(this,'wrong')"><span class="choice-key">D</span> (Restaurant, {H2, H3}) — H1 removed but driver did not move</button>
         </div>
         <div class="feedback" id="q3-fb"></div>
       </div>
 
       <div class="insight" id="insight3" style="display:none;">
-        <div class="insight-title">💡 Key Insight — Transition Model</div>
-        <p>The <strong>transition model</strong> tells us: given a state + action → what is the next state? After driving to H1 and delivering, two things change: <strong>location</strong> updates to H1, and <strong>H1 is removed</strong> from the pending orders. This is deterministic — always the same result!</p>
+        <div class="insight-title">💡 Transition Model</div>
+        <p>The transition model: state + action → new state. Drive(H1) changes <strong>two things</strong>: location becomes H1, and H1 leaves the orders set. Both must update together.</p>
       </div>
 
       <div id="next3" style="display:none;margin-top:16px;text-align:center;">
-        <button class="btn btn-pizza" onclick="goScene(4)">Next: When Are We Done? →</button>
+        <button class="btn btn-pizza" onclick="goScene(4)">Next: Goal Test →</button>
       </div>
     </div>
   </div>
@@ -356,12 +358,12 @@ orders = {H2, H3}</div>
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">4</div>
-      <div class="scene-title">🎯 All Pizzas Delivered!</div>
+      <div class="scene-title">🎯 Scene 4: When Is the Job Done?</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">🧑‍🍳</div>
-        <div class="bubble-text">All 3 houses received their pizza! <strong>Are we done?</strong> How does the AI know when to stop?</div>
+        <div class="bubble-text">All 3 orders delivered. How does the AI know the problem is solved?</div>
       </div>
 
       <div class="map-area">
@@ -376,7 +378,7 @@ orders   = {} <span class="state-comment">// empty!</span>
 <span class="state-highlight">goal_test(state) = (orders == {})</span></div>
 
       <div class="question-wrap">
-        <div class="q-text">When is the delivery problem SOLVED? (select the best answer)</div>
+        <div class="q-text">Which condition correctly describes the goal test?</div>
         <div class="choices" id="q4-choices">
           <button class="choice" onclick="q4Answer(this,'wrong')"><span class="choice-key">A</span> After delivering exactly 1 order</button>
           <button class="choice" onclick="q4Answer(this,'correct')"><span class="choice-key">B</span> When all orders are delivered (orders set is empty)</button>
@@ -393,12 +395,12 @@ orders   = {} <span class="state-comment">// empty!</span>
       </div>
 
       <div class="insight" id="insight4" style="display:none;">
-        <div class="insight-title">💡 Key Insight — Goal Test</div>
-        <p>The goal test is a <strong>simple check</strong> applied to any state. Here: is the orders set empty? Note that the driver's location doesn't matter — the goal is about completing all deliveries, not where you end up!</p>
+        <div class="insight-title">💡 Goal Test</div>
+        <p>The goal test checks one condition: <strong>orders == {}</strong>. The driver's final location doesn't matter — only that all orders are delivered.</p>
       </div>
 
       <div id="next4" style="display:none;margin-top:16px;text-align:center;">
-        <button class="btn btn-pizza" onclick="goScene(5)">Next: What Did It Cost? →</button>
+        <button class="btn btn-pizza" onclick="goScene(5)">Next: Path Cost →</button>
       </div>
     </div>
   </div>
@@ -412,12 +414,12 @@ orders   = {} <span class="state-comment">// empty!</span>
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">5</div>
-      <div class="scene-title">📊 How Much Did It Cost?</div>
+      <div class="scene-title">📊 Scene 5: Measuring the Cost</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">📊</div>
-        <div class="bubble-text">The delivery is done — but <strong>was it efficient?</strong> How do we measure the quality of the solution?</div>
+        <div class="bubble-text">Delivery complete. How do we measure whether this solution was <strong>optimal</strong>?</div>
       </div>
 
       <div class="map-area">
@@ -443,7 +445,7 @@ orders   = {} <span class="state-comment">// empty!</span>
       </div>
 
       <div class="question-wrap">
-        <div class="q-text">What is the Path Cost for this delivery problem?</div>
+        <div class="q-text">Which of the following is the most suitable path cost for this problem?</div>
         <div class="choices" id="q5-choices">
           <div class="choices" style="display:flex;flex-direction:column;gap:8px;">
             <button class="multi-choice" onclick="q5Toggle(this)" data-val="dist"><span class="checkbox"></span>📏 Distance (km)</button>
@@ -459,8 +461,8 @@ orders   = {} <span class="state-comment">// empty!</span>
       </div>
 
       <div class="insight" id="insight5" style="display:none;">
-        <div class="insight-title">💡 Key Insight — Path Cost</div>
-        <p>The path cost function depends on <strong>what you're optimizing for</strong>. If the pizza company cares about speed → minimize time. If they care about fuel → minimize liters. AI search algorithms like <strong>Uniform Cost Search</strong> and <strong>A*</strong> find paths with minimum cost!</p>
+        <div class="insight-title">💡 Path Cost</div>
+        <p>The path cost depends on <strong>what the problem is optimizing</strong>. All three are valid — the designer chooses based on the goal. Search algorithms like UCS and A* minimize the chosen cost.</p>
       </div>
 
       <div id="next5" style="display:none;margin-top:16px;text-align:center;">
@@ -478,12 +480,12 @@ orders   = {} <span class="state-comment">// empty!</span>
   <div class="scene-card">
     <div class="scene-header">
       <div class="scene-num">6</div>
-      <div class="scene-title">📋 Complete Problem Formulation</div>
+      <div class="scene-title">📋 Scene 6: Full Problem Formulation</div>
     </div>
     <div class="scene-body">
       <div class="bubble">
         <div class="bubble-avatar">🤖</div>
-        <div class="bubble-text">Let's put it all together! Here is the <strong>complete formal definition</strong> of the Pizza Delivery problem:</div>
+        <div class="bubble-text">All 5 components together — the complete AI problem definition:</div>
       </div>
 
       <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:18px;">

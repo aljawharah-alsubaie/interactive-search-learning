@@ -266,8 +266,8 @@ nav a:hover{opacity:.7;}
 
 <!-- ══ SECTION 1: PLAY ══ -->
 <section class="section visible" id="sec1">
-  <div class="section-title">Step 1: Control the Vacuum Robot 🤖</div>
-  <div class="section-subtitle">Both rooms start dirty 🗑️ — use Left, Right, and Suck to clean them both. Watch the state representation update with every action!</div>
+  <div class="section-title">Step 1: Control the Robot 🤖</div>
+  <div class="section-subtitle">Use Left, Right, and Suck to clean both rooms. Watch the state update with each action.</div>
 
   <div class="card">
     <div class="vw-layout">
@@ -335,8 +335,8 @@ room_B : 🟡 Dirty</div>
 
 <!-- ══ SECTION 2: ALL STATES ══ -->
 <section class="section" id="sec2">
-  <div class="section-title">Step 2: All 8 Possible States 🗂️</div>
-  <div class="section-subtitle">The vacuum world has exactly 8 possible states. Click any state to see its representation!</div>
+  <div class="section-title">Step 2: All 8 States 🗂️</div>
+  <div class="section-subtitle">The vacuum world has exactly 8 states. Click any to explore it.</div>
 
   <div class="card">
     <p style="color:var(--text-dim);font-size:14px;margin-bottom:20px;">
@@ -407,8 +407,8 @@ room_B : 🟡 Dirty</div>
 
 <!-- ══ SECTION 3: TRANSITIONS ══ -->
 <section class="section" id="sec3">
-  <div class="section-title">Step 3: Transition Model 🔄</div>
-  <div class="section-subtitle">Pick a starting state, then an action, and see what state results!</div>
+  <div class="section-title">Step 3: Transitions 🔄</div>
+  <div class="section-subtitle">Pick a state, choose an action, and see the result.</div>
 
   <div class="card">
     <div class="trans-3col" style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;overflow:hidden;">
@@ -492,62 +492,68 @@ room_B : 🟡 Dirty</div>
 
 <!-- ══ SECTION 4: FORMULATE ══ -->
 <section class="section" id="sec4">
-  <div class="section-title">Step 4: Formulate the Problem 📋</div>
-  <div class="section-subtitle">Based on what you've learned, answer these five components for the Vacuum World.</div>
+  <div class="section-title">Step 4: Test Your Understanding 📝</div>
+  <div class="section-subtitle">Read the scenario, then answer the 5 questions below.</div>
+
+  <!-- SCENARIO -->
+  <div style="background:linear-gradient(135deg,rgba(0,212,170,.07),rgba(108,99,255,.04));border:1px solid rgba(0,212,170,.3);border-radius:14px;padding:18px 20px;margin-bottom:22px;">
+    <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">📋 Scenario</div>
+    <p style="font-size:14px;line-height:1.7;color:var(--text);">A vacuum robot operates in a two-room environment (Room A and Room B). Both rooms may be dirty or clean. The robot can move Left, move Right, or Suck up dirt. Each action costs 1. The robot's goal is to clean both rooms using the minimum number of actions.</p>
+  </div>
 
   <div class="form-components">
 
     <div class="form-comp" id="fc1">
-      <div class="comp-title"><div class="comp-num">1</div> State Representation</div>
-      <div class="comp-desc">What does each state in the vacuum world capture?</div>
+      <div class="comp-title"><div class="comp-num">1</div> What does each state represent in this problem?</div>
       <div class="options" id="fc1-opts">
-        <button class="option" onclick="fcSel('fc1',this,'correct')"><span class="opt-letter">A</span><div>A tuple: (robot_location, room_A_dirty, room_B_dirty)</div></button>
-        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">B</span><div>Only which rooms are dirty</div></button>
-        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">C</span><div>Only where the robot is</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">A</span><div>Only which rooms are dirty</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">B</span><div>Only the robot's current location</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'correct')"><span class="opt-letter">C</span><div>Robot location + dirty status of each room</div></button>
+        <button class="option" onclick="fcSel('fc1',this,'wrong')"><span class="opt-letter">D</span><div>The sequence of actions taken so far</div></button>
       </div>
       <div class="grade-feedback" id="fc1-fb"></div>
     </div>
 
     <div class="form-comp" id="fc2">
-      <div class="comp-title"><div class="comp-num">2</div> Initial State</div>
-      <div class="comp-desc">What is a valid initial state for the vacuum world?</div>
+      <div class="comp-title"><div class="comp-num">2</div> What is a valid initial state?</div>
       <div class="options" id="fc2-opts">
-        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">A</span><div>Always starts with robot in A and both rooms clean</div></button>
-        <button class="option" onclick="fcSel('fc2',this,'correct')"><span class="opt-letter">B</span><div>Any of the 8 states can be the initial state</div></button>
-        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">C</span><div>Only states where at least one room is dirty</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">A</span><div>Always (A, dirty, dirty) — both rooms dirty</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'correct')"><span class="opt-letter">B</span><div>Any of the 8 possible states</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">C</span><div>Only states where both rooms are dirty</div></button>
+        <button class="option" onclick="fcSel('fc2',this,'wrong')"><span class="opt-letter">D</span><div>Only states where the robot is in Room A</div></button>
       </div>
       <div class="grade-feedback" id="fc2-fb"></div>
     </div>
 
     <div class="form-comp" id="fc3">
-      <div class="comp-title"><div class="comp-num">3</div> Actions</div>
-      <div class="comp-desc">What are the available actions in each state?</div>
+      <div class="comp-title"><div class="comp-num">3</div> What is an action in this problem?</div>
       <div class="options" id="fc3-opts">
-        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">A</span><div>Move Up, Down, Left, Right</div></button>
-        <button class="option" onclick="fcSel('fc3',this,'correct')"><span class="opt-letter">B</span><div>Left, Right, Suck — always 3 actions per state</div></button>
-        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">C</span><div>Only Suck when dirty, only Move when clean</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">A</span><div>Suck only — moving is not an action</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">B</span><div>Suck when dirty, Move when clean</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'correct')"><span class="opt-letter">C</span><div>Left, Right, or Suck — always 3 actions available</div></button>
+        <button class="option" onclick="fcSel('fc3',this,'wrong')"><span class="opt-letter">D</span><div>Move Up, Down, Left, Right</div></button>
       </div>
       <div class="grade-feedback" id="fc3-fb"></div>
     </div>
 
     <div class="form-comp" id="fc4">
-      <div class="comp-title"><div class="comp-num">4</div> Goal Test</div>
-      <div class="comp-desc">When has the robot successfully completed its task?</div>
+      <div class="comp-title"><div class="comp-num">4</div> What is the goal test?</div>
       <div class="options" id="fc4-opts">
-        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">A</span><div>When the robot returns to room A</div></button>
-        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">B</span><div>When at least one room is clean</div></button>
-        <button class="option" onclick="fcSel('fc4',this,'correct')"><span class="opt-letter">C</span><div>When both rooms are clean (room_A_dirty = False AND room_B_dirty = False)</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">A</span><div>Robot is back in Room A</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">B</span><div>At least one room is clean</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'correct')"><span class="opt-letter">C</span><div>Both rooms are clean (regardless of robot location)</div></button>
+        <button class="option" onclick="fcSel('fc4',this,'wrong')"><span class="opt-letter">D</span><div>Robot has performed the Suck action at least once</div></button>
       </div>
       <div class="grade-feedback" id="fc4-fb"></div>
     </div>
 
     <div class="form-comp" id="fc5">
-      <div class="comp-title"><div class="comp-num">5</div> Path Cost</div>
-      <div class="comp-desc">How is the cost of a solution measured?</div>
+      <div class="comp-title"><div class="comp-num">5</div> What is the most suitable path cost?</div>
       <div class="options" id="fc5-opts">
-        <button class="option" onclick="fcSel('fc5',this,'correct')"><span class="opt-letter">A</span><div>Each action costs 1 — optimal solution minimizes total number of actions</div></button>
-        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">B</span><div>Suck costs 2, Move costs 1</div></button>
-        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">C</span><div>Cost = number of dirty rooms at the end</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'correct')"><span class="opt-letter">A</span><div>Total number of actions taken (each action costs 1)</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">B</span><div>Number of rooms that are still dirty</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">C</span><div>Suck costs 2, Move costs 1</div></button>
+        <button class="option" onclick="fcSel('fc5',this,'wrong')"><span class="opt-letter">D</span><div>Distance traveled in meters</div></button>
       </div>
       <div class="grade-feedback" id="fc5-fb"></div>
     </div>

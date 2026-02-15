@@ -32,7 +32,7 @@ nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}n
 .sec-sub{color:var(--text-dim);font-size:14px;margin-bottom:24px;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;overflow:hidden;}
 .card-sm{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#34d399;white-space:pre;line-height:1.7;overflow-x:auto;}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#34d399;white-space:pre-wrap;word-break:break-word;line-height:1.7;overflow-x:auto;}
 .code-comment{color:var(--text-muted);}
 .state-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px;}
 
@@ -154,6 +154,34 @@ nav a{color:var(--accent);text-decoration:none;font-size:14px;font-weight:500;}n
     #paths-comparison, #routes-grid{grid-template-columns:1fr !important;}
   }
 
+
+  @media(max-width:640px){
+    nav{padding:11px 14px;}
+    .hero h1{font-size:22px !important;}
+    .hero p{font-size:13px;}
+    .hero-tag{font-size:10px;padding:3px 10px;}
+    .steps-bar{padding:12px 6px;overflow-x:auto;}
+    .sc,.step-circle{width:32px !important;height:32px !important;font-size:11px !important;}
+    .step-label,.sl{font-size:9px !important;}
+    .sline,.step-line{margin-top:-16px !important;margin-bottom:16px !important;}
+    .section{padding:0 12px 50px !important;}
+    .sec-title,.section-title{font-size:17px !important;}
+    .sec-sub,.section-subtitle{font-size:12px !important;}
+    .card{padding:14px !important;}
+    .card-sm{padding:10px !important;}
+    .qbox,.question-box{padding:14px !important;}
+    .qt,.question-text{font-size:14px !important;}
+    .option{padding:10px 12px !important;font-size:13px !important;}
+    .score-big,.score-big{font-size:52px !important;}
+    .sbd,.score-breakdown{grid-template-columns:repeat(3,1fr) !important;}
+    .hanoi-layout,.maze-layout,.tsp-layout{grid-template-columns:1fr !important;}
+    #tsp-canvas{max-width:100% !important;}
+    #maze-canvas{max-width:100% !important;}
+    .pegs-row{overflow-x:auto;}
+    .disk{font-size:10px !important;}
+    .diff-btns{flex-wrap:wrap;}
+    .hanoi-controls{flex-wrap:wrap;gap:8px;}
+  }
 </style>
 </head>
 <body>
